@@ -15,6 +15,7 @@
 | 3 | [docs/03-to-be-design-discussion.md](docs/03-to-be-design-discussion.md) | 문제 정의(P1~P7), 설계 결정(D1~D5)과 근거, 결정 로그 |
 | 4 | [docs/04-to-be-architecture.md](docs/04-to-be-architecture.md) | TO-BE 아키텍처 — 변하는 축 분석, 컴포넌트 구조도, 상호작용, 확장 시나리오 검증 |
 | 5 | [docs/05-extension-guide.md](docs/05-extension-guide.md) | 확장 가이드 — 시나리오별 추가 지점, 사용한 패턴, 무엇이 수월해졌는가 |
+| 6 | [docs/06-db-integration.md](docs/06-db-integration.md) | DB 연동 — 테이블별 운명, 코드↔DB 기동 대사, 트랜잭션 경계, 마이그레이션 경로 |
 
 ## 코드 구조
 
