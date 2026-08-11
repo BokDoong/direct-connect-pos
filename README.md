@@ -26,6 +26,7 @@ src/main/kotlin/karrot/partnerpos/
 ├── spec/          당근 공통 규격서의 코드화 (공통 페이로드)
 ├── transport/     변하지 않는 전송 규약 1벌 (Bearer·타임아웃·재시도 4회·status 판정)
 ├── application/   앱 계층 — 파트너 무지, 계약만 소비 (주문 등록/취소 전파/재고 오버레이/매장 활성화)
+├── store/         매장 조립 — Store 도메인 모델, StoreFinder(파트너 resolve 유일 지점), 기동 대사
 └── config/        환경 데이터·시크릿 바인딩 (yml) — 코드가 아닌 유일한 것
 ```
 

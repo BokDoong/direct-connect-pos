@@ -182,5 +182,8 @@ AS-IS에서 path를 컬럼으로 override했다. TO-BE에서는 **구현체가 �
 | D3 | 페이로드 확장 | **C. 파트너 소유 조립** (도메인→파트너 DTO 변환을 구현체가 소유, 공통 조립기는 부품) | 버거킹 확장을 타입 안전하게 흡수 (P2 해소), 파트너 용어가 구현체 밖으로 새지 않음 | 2026-08-11 |
 | D4 | 정책값 위치 | **A. 코드 — 구현체 선언** (base_url·auth_key만 yml/시크릿) | 계약값은 리뷰·이력 대상 (P5 해소), 하이브리드 원칙의 경계 | 2026-08-11 |
 | D5 | path 차이 | **구현체가 코드로 선언** (base_url만 설정 주입) | D1 귀결 | 2026-08-11 |
+| D6 | 매장-파트너 연결 | **Store 도메인 모델이 파트너 맥락 보유** — StoreFinder(단일 조립 지점)가 entity→도메인 조립 시 registry에서 resolve해 주입. 기존 `partnerType: PartnerType` enum은 유지하고 sealed 재모델링은 범위 밖(별도 PR 성격)으로 기각. 잃는 타입 안전성은 ①생성 시점 양방향 불변식 ②non-null 접근자로 보완 | AS-IS StoreFinder 컨벤션 재현 + 기존 모델 호환·작업 범위 절제. registry 의존이 앱 서비스 4곳→StoreFinder 1곳으로 응집 | 2026-08-11 |
+| D7 | 파트너 키 해석 경로 | **A. partner_stores→partners 조인 유지** (id→name 번역). partner_key 직접 저장(B안)은 스키마 변경이라 기각 — docs/06의 단순화 옵션으로만 기록 | 기존 스키마 존중 — D6과 같은 범위 절제 논리. partners는 작은 불변 테이블이라 조인/캐시 비용 무시 가능 | 2026-08-11 |
 
-> 상세 설계(컴포넌트 구조도·상호작용·확장 시나리오 검증)는 `04-to-be-architecture.md`.
+> 상세 설계(컴포넌트 구조도·상호작용·확장 시나리오 검증)는 `04-to-be-architecture.md`,
+> DB 연동·매장 조립 상세는 `06-db-integration.md`.
