@@ -16,10 +16,13 @@ class OrderPlacementServiceTest {
     private val partner = RecordingPartner(key = PartnerKey("TEST_PARTNER"))
     private val store = integratedStore(partner)
 
+    private fun serviceWith(repository: PartnerOrderMappingRepository) =
+        OrderPlacementService(PartnerOrderWriter(repository))
+
     @Test
     @DisplayName("정상 흐름: 파트너 등록 후 매핑이 저장된다")
     fun placeRegistersAndSaves() {
-        val service = OrderPlacementService(InMemoryPartnerOrderMappingRepository())
+        val service = serviceWith(InMemoryPartnerOrderMappingRepository())
         val order = sampleOrder()
 
         service.place(store, order)
@@ -35,7 +38,7 @@ class OrderPlacementServiceTest {
             override fun save(orderCode: OrderCode, partnerKey: PartnerKey) =
                 throw IllegalStateException("db down (stub)")
         }
-        val service = OrderPlacementService(failingRepository)
+        val service = serviceWith(failingRepository)
         val order = sampleOrder()
 
         assertThrows<IllegalStateException> { service.place(store, order) }
@@ -52,7 +55,7 @@ class OrderPlacementServiceTest {
             override fun save(orderCode: OrderCode, partnerKey: PartnerKey) =
                 throw IllegalStateException("db down (stub)")
         }
-        val service = OrderPlacementService(failingRepository)
+        val service = serviceWith(failingRepository)
 
         assertThrows<IllegalStateException> { service.place(store, sampleOrder()) }
     }
@@ -61,7 +64,7 @@ class OrderPlacementServiceTest {
     @DisplayName("파트너 등록 자체가 실패하면 매핑 저장도 취소 전파도 없다 — 결제 보상 후 실패 응답")
     fun registerFailurePropagates() {
         partner.failOnRegister = true
-        val service = OrderPlacementService(InMemoryPartnerOrderMappingRepository())
+        val service = serviceWith(InMemoryPartnerOrderMappingRepository())
 
         assertThrows<PosCommunicationException> { service.place(store, sampleOrder()) }
 
@@ -72,7 +75,7 @@ class OrderPlacementServiceTest {
     @Test
     @DisplayName("중복 등록은 매핑 저장소의 유니크 제약이 방어한다 (AS-IS partner_orders.order_id uk)")
     fun duplicateRegistrationRejected() {
-        val service = OrderPlacementService(InMemoryPartnerOrderMappingRepository())
+        val service = serviceWith(InMemoryPartnerOrderMappingRepository())
         val order = sampleOrder()
 
         service.place(store, order)

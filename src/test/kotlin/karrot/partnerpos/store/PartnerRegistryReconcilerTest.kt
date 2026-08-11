@@ -12,9 +12,9 @@ import org.junit.jupiter.api.assertThrows
 /** 분산 enum(DB partners.name ↔ 코드 PartnerKey)의 drift를 기동 실패로 잡는지 검증. */
 class PartnerRegistryReconcilerTest {
 
-    private class StubPartnerRecords(private val names: List<String>) : PartnerRecordRepository {
+    private class StubPartnerRecords(private val keys: List<String>) : PartnerRecordRepository {
         override fun getById(partnerId: Long): PartnerRecord = throw UnsupportedOperationException()
-        override fun findAllNames(): List<String> = names
+        override fun findAllKeys(): List<String> = keys
     }
 
     private fun registryOf(vararg names: String) =

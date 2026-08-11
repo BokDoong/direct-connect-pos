@@ -9,16 +9,17 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @Repository
 class InMemoryPartnerRecordRepository : PartnerRecordRepository {
+    // name(표시·인바운드용 — 변할 수 있음)과 key(dispatch용 안정 식별자)의 분리를 시드 데이터가 보여준다
     private val records = listOf(
-        PartnerRecord(id = 1, name = "CJ_FOODVILLE"),
-        PartnerRecord(id = 2, name = "LOTTE_GRS"),
-        PartnerRecord(id = 3, name = "BURGER_KING"),
+        PartnerRecord(id = 1, name = "CJ푸드빌", key = "CJ_FOODVILLE"),
+        PartnerRecord(id = 2, name = "롯데GRS", key = "LOTTE_GRS"),
+        PartnerRecord(id = 3, name = "버거킹", key = "BURGER_KING"),
     ).associateBy { it.id }
 
     override fun getById(partnerId: Long): PartnerRecord =
         records[partnerId] ?: throw NoSuchElementException("partner not found: $partnerId")
 
-    override fun findAllNames(): List<String> = records.values.map { it.name }
+    override fun findAllKeys(): List<String> = records.values.map { it.key }
 }
 
 @Repository

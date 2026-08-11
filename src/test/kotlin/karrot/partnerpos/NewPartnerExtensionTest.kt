@@ -3,6 +3,7 @@ package karrot.partnerpos
 import karrot.partnerpos.application.ActivationResult
 import karrot.partnerpos.application.InMemoryPartnerOrderMappingRepository
 import karrot.partnerpos.application.OrderPlacementService
+import karrot.partnerpos.application.PartnerOrderWriter
 import karrot.partnerpos.application.PurchaseStage
 import karrot.partnerpos.application.StockOverlayService
 import karrot.partnerpos.application.StockOverlayResult
@@ -68,11 +69,11 @@ class NewPartnerExtensionTest {
         override fun unregisterStore(storeCode: StoreCode) = Unit
     }
 
-    /** partners 테이블 더블 — SUBWAY row가 INSERT된 상태. */
+    /** partners 테이블 더블 — SUBWAY row가 INSERT된 상태 (name은 표시용, key가 dispatch 식별자). */
     private class SubwayPartnerRecords : PartnerRecordRepository {
-        private val record = PartnerRecord(id = 99L, name = "SUBWAY")
+        private val record = PartnerRecord(id = 99L, name = "써브웨이", key = "SUBWAY")
         override fun getById(partnerId: Long): PartnerRecord = record
-        override fun findAllNames(): List<String> = listOf(record.name)
+        override fun findAllKeys(): List<String> = listOf(record.key)
     }
 
     @Test
@@ -100,7 +101,7 @@ class NewPartnerExtensionTest {
 
         // 주문 등록 — OrderPlacementService는 SUBWAY의 존재를 모른 채 동작한다
         val order = sampleOrder()
-        OrderPlacementService(InMemoryPartnerOrderMappingRepository()).place(store, order)
+        OrderPlacementService(PartnerOrderWriter(InMemoryPartnerOrderMappingRepository())).place(store, order)
         assertThat(subway.registeredOrders).containsExactly(order)
 
         // 재고 오버레이 — capability(StockQueryable 구현)도 자동으로 인식된다
