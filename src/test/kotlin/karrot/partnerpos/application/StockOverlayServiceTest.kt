@@ -28,7 +28,7 @@ class StockOverlayServiceTest {
     }
 
     private val stockPartner = StockPartner()
-    private val service = StockOverlayService(PartnerPosStockFinder(RecordingHappyOrderClient()))
+    private val service = StockOverlayService(PosStockFinder(RecordingHappyOrderClient()))
     private val menuCodes = listOf(MenuCode("MENU-A"))
 
     @Test

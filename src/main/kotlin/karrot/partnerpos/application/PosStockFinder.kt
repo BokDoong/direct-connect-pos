@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
  * 푸드테크(푸시형)·KARROT은 Pull 자체가 없다.
  */
 @Component
-class PartnerPosStockFinder(
+class PosStockFinder(
     private val happyOrderClient: HappyOrderClient,
 ) {
     /** @return null = 재고 Pull 미지원(푸시형이거나 미제공) — 호출자는 DB 값을 쓴다. 실패는 예외로 전파. */

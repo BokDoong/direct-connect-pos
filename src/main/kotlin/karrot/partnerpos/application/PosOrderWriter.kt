@@ -20,11 +20,9 @@ class PosOrderWriter(
         when (store.partnerType) {
             PartnerType.INTEGRATED_PARTNER ->
                 partnerOrderWriter.write(orderCode, checkNotNull(store.directPos).partner.key)
-            PartnerType.FOODTECH -> Unit
-            // pseudocode: foodtechOrderWriter.write(orderCode, unidomOrderId) — foodtech_orders
-            PartnerType.HAPPYORDER -> Unit
-            // pseudocode: happyOrderOrderWriter.write(hoOrderId) — happyorder_orders (파트너 채번 회신 저장)
-            PartnerType.KARROT -> Unit  // 외부 주문번호 매핑 없음
+            PartnerType.FOODTECH -> Unit        // pseudocode: foodtechOrderWriter.write(orderCode, unidomOrderId) — foodtech_orders
+            PartnerType.HAPPYORDER -> Unit      // pseudocode: happyOrderOrderWriter.write(hoOrderId) — happyorder_orders (파트너 채번 회신 저장)
+            PartnerType.KARROT -> Unit          // 외부 주문번호 매핑 없음
         }
     }
 }

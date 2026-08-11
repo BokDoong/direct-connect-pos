@@ -34,8 +34,6 @@ class OrderPlacementService(
         try {
             posOrderWriter.write(store, order.orderCode)  // 타입별 매핑 원장 저장 분기는 Writer 소관
         } catch (e: Exception) {
-            // 유령주문 방지: 파트너에는 등록됐는데 당근에 기록이 없는 상태를 즉시 해소한다.
-            // 취소 전파 자체가 실패해도 원인 예외를 삼키지 않는다 (best-effort + 로깅).
             runCatching { posOrderSynchronizer.cancelOrder(store, order.orderCode) }
                 .onFailure { log.error("유령주문 보상 취소 전파 실패: {}", order.orderCode.value, it) }
             cancelPayment(order)

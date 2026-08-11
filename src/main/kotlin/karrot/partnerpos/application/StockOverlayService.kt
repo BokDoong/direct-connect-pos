@@ -38,12 +38,12 @@ sealed interface StockOverlayResult {
 /**
  * 실시간 재고 오버레이 — AS-IS 6개 호출 지점의 공통 진입점.
  *
- * 재고 Pull 가능 여부와 타입별 분기는 [PartnerPosStockFinder]가 판단하고,
+ * 재고 Pull 가능 여부와 타입별 분기는 [PosStockFinder]가 판단하고,
  * 이 서비스는 구매 단계별 실패 정책(soft/hard)만 소유한다.
  */
 @Service
 class StockOverlayService(
-    private val stockFinder: PartnerPosStockFinder,
+    private val stockFinder: PosStockFinder,
 ) {
     fun overlay(
         store: Store,

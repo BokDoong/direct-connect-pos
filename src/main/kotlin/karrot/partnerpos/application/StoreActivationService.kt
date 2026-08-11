@@ -14,13 +14,13 @@ sealed interface ActivationResult {
 /**
  * 매장 활성화 — 파트너측 매장 등록이 플로우를 가르는 지점.
  *
- * 등록 지원 여부와 타입별 분기는 [PartnerPosStoreRegistrar]가 판단한다.
+ * 등록 지원 여부와 타입별 분기는 [PosStoreRegistrar]가 판단한다.
  * 등록이 필요한 파트너(CJ·버거킹·푸드테크)는 등록 성공이 활성화의 전제(hard 의존)이고,
  * 미지원(롯데·해피오더 — 수기 협의, KARROT — 외부 없음)은 즉시 활성화된다.
  */
 @Service
 class StoreActivationService(
-    private val storeRegistrar: PartnerPosStoreRegistrar,
+    private val storeRegistrar: PosStoreRegistrar,
 ) {
     fun activate(store: Store): ActivationResult {
         try {

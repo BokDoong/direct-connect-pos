@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
  * 해피오더는 수기 협의(API 없음), KARROT은 외부 시스템이 없어 no-op.
  */
 @Component
-class PartnerPosStoreRegistrar(
+class PosStoreRegistrar(
     private val foodTechClient: FoodTechClient,
 ) {
     fun registerStore(store: Store) {

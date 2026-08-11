@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test
  * 파트너 타입 분기 컴포넌트 3종의 라우팅 검증 —
  * 직연동은 전략(DirectPosPartner)으로, 푸드테크·해피오더는 레거시 클라이언트로, KARROT은 no-op.
  */
-class PartnerPosDispatchTest {
+class PosDispatchTest {
 
     private val foodTech = RecordingFoodTechClient()
     private val happyOrder = RecordingHappyOrderClient()
@@ -108,7 +108,7 @@ class PartnerPosDispatchTest {
 
     @Nested
     inner class StockFinder {
-        private val finder = PartnerPosStockFinder(happyOrder)
+        private val finder = PosStockFinder(happyOrder)
         private val menuCodes = listOf(MenuCode("MENU-A"))
 
         @Test
@@ -133,7 +133,7 @@ class PartnerPosDispatchTest {
 
     @Nested
     inner class StoreRegistrar {
-        private val registrar = PartnerPosStoreRegistrar(foodTech)
+        private val registrar = PosStoreRegistrar(foodTech)
 
         @Test
         @DisplayName("직연동은 capability(StoreRegistrable)로 판단해 파트너측 매장 코드로 등록한다")

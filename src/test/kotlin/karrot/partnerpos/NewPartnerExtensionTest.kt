@@ -6,8 +6,8 @@ import karrot.partnerpos.application.OrderPlacementService
 import karrot.partnerpos.application.PartnerOrderWriter
 import karrot.partnerpos.application.PosOrderSynchronizer
 import karrot.partnerpos.application.PosOrderWriter
-import karrot.partnerpos.application.PartnerPosStockFinder
-import karrot.partnerpos.application.PartnerPosStoreRegistrar
+import karrot.partnerpos.application.PosStockFinder
+import karrot.partnerpos.application.PosStoreRegistrar
 import karrot.partnerpos.application.PurchaseStage
 import karrot.partnerpos.application.StockOverlayService
 import karrot.partnerpos.application.StockOverlayResult
@@ -101,7 +101,7 @@ class NewPartnerExtensionTest {
         // 매장 활성화 — capability(StoreRegistrable)에 따라 파트너측 등록이 활성화의 전제가 된다
         val foodTech = RecordingFoodTechClient()
         val happyOrder = RecordingHappyOrderClient()
-        val activated = StoreActivationService(PartnerPosStoreRegistrar(foodTech)).activate(store)
+        val activated = StoreActivationService(PosStoreRegistrar(foodTech)).activate(store)
         assertThat(activated).isEqualTo(ActivationResult.Activated)
         assertThat(subway.registeredStores).containsExactly(StoreCode("SW-001"))
 
@@ -114,7 +114,7 @@ class NewPartnerExtensionTest {
         assertThat(subway.registeredOrders).containsExactly(order)
 
         // 재고 오버레이 — capability(StockQueryable 구현)도 자동으로 인식된다
-        val result = StockOverlayService(PartnerPosStockFinder(happyOrder))
+        val result = StockOverlayService(PosStockFinder(happyOrder))
             .overlay(store, listOf(MenuCode("MENU-A")), PurchaseStage.MENU_VIEW)
         assertThat(result).isEqualTo(
             StockOverlayResult.Overlaid(listOf(MenuStock(MenuCode("MENU-A"), 7))),
