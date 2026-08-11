@@ -3,6 +3,7 @@ package karrot.partnerpos
 import karrot.partnerpos.config.DirectPosProperties
 import karrot.partnerpos.contract.DirectPosPartner
 import karrot.partnerpos.contract.MenuCode
+import karrot.partnerpos.contract.MenuStock
 import karrot.partnerpos.contract.OrderCode
 import karrot.partnerpos.contract.PartnerKey
 import karrot.partnerpos.contract.PartnerPolicy
@@ -11,6 +12,8 @@ import karrot.partnerpos.contract.PosCommunicationException
 import karrot.partnerpos.contract.PosOrder
 import karrot.partnerpos.contract.PosOrderItem
 import karrot.partnerpos.contract.StoreCode
+import karrot.partnerpos.legacy.FoodTechClient
+import karrot.partnerpos.legacy.HappyOrderClient
 import karrot.partnerpos.store.DirectPosContext
 import karrot.partnerpos.store.PartnerType
 import karrot.partnerpos.store.Store
@@ -81,6 +84,34 @@ fun karrotStore() = Store(
     partnerType = PartnerType.KARROT,
     directPos = null,
 )
+
+fun foodTechStore() = Store(id = 3L, name = "푸드테크 매장", partnerType = PartnerType.FOODTECH, directPos = null)
+
+fun happyOrderStore() = Store(id = 4L, name = "해피오더 매장", partnerType = PartnerType.HAPPYORDER, directPos = null)
+
+/** 레거시 클라이언트 더블 — 호출을 기록한다. */
+class RecordingFoodTechClient : FoodTechClient {
+    val registeredOrders = mutableListOf<PosOrder>()
+    val canceledOrderCodes = mutableListOf<OrderCode>()
+    val linkedStoreIds = mutableListOf<Long>()
+    val unlinkedStoreIds = mutableListOf<Long>()
+
+    override fun registerOrder(order: PosOrder) { registeredOrders += order }
+    override fun cancelOrder(orderCode: OrderCode) { canceledOrderCodes += orderCode }
+    override fun linkStore(storeId: Long) { linkedStoreIds += storeId }
+    override fun unlinkStore(storeId: Long) { unlinkedStoreIds += storeId }
+}
+
+class RecordingHappyOrderClient(
+    var stocks: List<MenuStock> = emptyList(),
+) : HappyOrderClient {
+    val registeredOrders = mutableListOf<PosOrder>()
+    val canceledOrderCodes = mutableListOf<OrderCode>()
+
+    override fun registerOrder(order: PosOrder) { registeredOrders += order }
+    override fun cancelOrder(orderCode: OrderCode) { canceledOrderCodes += orderCode }
+    override fun fetchStocks(storeId: Long, menuCodes: List<MenuCode>): List<MenuStock> = stocks
+}
 
 fun propertiesFor(key: PartnerKey): DirectPosProperties = propertiesFor(listOf(key))
 

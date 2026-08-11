@@ -1,5 +1,7 @@
 package karrot.partnerpos.application
 
+import karrot.partnerpos.RecordingFoodTechClient
+import karrot.partnerpos.RecordingHappyOrderClient
 import karrot.partnerpos.RecordingPartner
 import karrot.partnerpos.contract.OrderCode
 import karrot.partnerpos.contract.PartnerKey
@@ -17,7 +19,10 @@ class OrderPlacementServiceTest {
     private val store = integratedStore(partner)
 
     private fun serviceWith(repository: PartnerOrderMappingRepository) =
-        OrderPlacementService(PartnerOrderWriter(repository))
+        OrderPlacementService(
+            PartnerOrderWriter(repository),
+            PartnerPosOrderSynchronizer(RecordingFoodTechClient(), RecordingHappyOrderClient()),
+        )
 
     @Test
     @DisplayName("정상 흐름: 파트너 등록 후 매핑이 저장된다")

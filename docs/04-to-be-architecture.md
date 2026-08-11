@@ -87,6 +87,7 @@ flowchart TB
 | `OrderCancelPropagator` | 앱 | 당근발 취소만 전파. 실패해도 삼킴(best-effort) — 당근 취소는 이미 확정 | 〃 |
 | `StockOverlayService` | 앱 | 재고 오버레이. `is StockQueryable` 검사 후 조회, **PurchaseStage별 soft/hard 실패 정책 소유** (파트너와 무관한 구매 단계 속성 — Q1 결정) | 〃 |
 | `StoreActivationService` | 앱 | 활성화 플로우. `is StoreRegistrable`이면 등록 성공이 활성화의 전제(hard 의존), 아니면 즉시 활성화 | 〃 |
+| `PartnerPosOrderSynchronizer` / `PartnerPosStockFinder` / `PartnerPosStoreRegistrar` | 앱 | **파트너 타입 분기 지점** (D10) — INTEGRATED는 DirectPosPartner 전략, FOODTECH·HAPPYORDER는 레거시 클라이언트, KARROT은 no-op. exhaustive when으로 새 타입 추가가 컴파일 타임에 잡힘 | 레거시(파트너 주도 규격) 경로와의 호환 계층 — 직연동 재설계를 레거시에 강요하지 않음 |
 | `StoreFinder` / `Store` | 앱 | entity → Store 도메인 모델 조립의 단일 지점 (AS-IS 컨벤션 재현). INTEGRATED 매장은 `DirectPosContext(partner, partnerStoreCode)`를 resolve해 실음 — 함께 다니는 값의 응집, 컨텍스트 안은 전부 non-null. Store는 생성 시점 양방향 불변식으로 방어 — `directPos == null`이 곧 "직연동 아님" | **데이터(key)→행위(전략) 번역의 유일 지점** — registry 의존이 서비스 4곳에서 여기로 응집 (D6·D7, docs/06 §3) |
 | `DirectPosPartnerRegistry` | 계약 | `List<DirectPosPartner>`를 주입받아 `Map<PartnerKey, _>`로 색인. 기동 시 중복/누락 검증 | Spring이 구현체를 모아줌 — 등록 코드 0줄. 코드↔DB 정합은 `PartnerRegistryReconciler`가 기동 시 대사 |
 | `DirectPosPartner` | 계약 | 필수 계약: key, policy, 주문 등록/취소. **전 파트너가 반드시 하는 것만** 여기에 | 반환은 정상/예외 — 응답 body 미활용(AS-IS 확인)을 반영해 `Unit` |
@@ -298,7 +299,8 @@ sequenceDiagram
 | 파트너 계약 계층 | `src/main/kotlin/karrot/partnerpos/contract/` — PartnerKey, Model, DirectPosPartner(+capability+policy), DirectPosPartnerRegistry |
 | 공통 부품 | `transport/PosApiTransport.kt`, `spec/CommonPayloads.kt`, `config/` (Properties·RestClient 구성) |
 | 파트너 구현 계층 | `partner/CjPartner.kt` · `LottePartner.kt` · `BurgerKingPartner.kt` |
-| 애플리케이션 계층 | `application/` — OrderPlacementService, OrderCancelPropagator, StockOverlayService, StoreActivationService, PartnerOrderWriter(서비스→Writer→Repository 계층, D9) |
+| 애플리케이션 계층 | `application/` — OrderPlacementService, OrderCancelPropagator, StockOverlayService, StoreActivationService, PartnerOrderWriter(D9), 타입 분기 3종 PartnerPos*(D10) |
+| 레거시 클라이언트 경계 | `legacy/` — FoodTechClient·HappyOrderClient 포트 + 스텁 (파트너 주도 규격 — 재설계 스코프 밖, 경계만 재현) |
 | 매장 조립 (docs/06 §3) | `store/` — Store(도메인 모델), StoreFinder, PartnerRegistryReconciler(기동 대사), 인메모리 어댑터 |
 | 환경 데이터·시크릿 | `resources/application.yml` (`partner-pos.endpoints`) |
 | §8 테스트 전략 | `src/test/kotlin/karrot/partnerpos/` — 전송 규약(transport/), 파트너 계약(partner/), 플로우(application/), 확장 데모(NewPartnerExtensionTest) |

@@ -1,5 +1,6 @@
 package karrot.partnerpos.application
 
+import karrot.partnerpos.RecordingFoodTechClient
 import karrot.partnerpos.RecordingPartner
 import karrot.partnerpos.contract.PartnerKey
 import karrot.partnerpos.contract.PosCommunicationException
@@ -27,7 +28,7 @@ class StoreActivationServiceTest {
     }
 
     private val registrable = RegistrablePartner()
-    private val service = StoreActivationService()
+    private val service = StoreActivationService(PartnerPosStoreRegistrar(RecordingFoodTechClient()))
 
     @Test
     @DisplayName("등록 지원 파트너는 파트너측 매장 코드로 등록 성공해야 활성화된다")

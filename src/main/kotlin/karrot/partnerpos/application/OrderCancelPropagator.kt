@@ -13,13 +13,13 @@ import org.springframework.stereotype.Service
  * 매장발 취소는 인바운드로 들어오므로 이 컴포넌트의 대상이 아니다.
  */
 @Service
-class OrderCancelPropagator {
+class OrderCancelPropagator(
+    private val orderSynchronizer: PosOrderSynchronizer,
+) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun propagate(store: Store, orderCode: OrderCode) {
-        val partner = store.directPos?.partner ?: return  // 직연동이 아니면 전파할 곳이 없다
-
-        runCatching { partner.cancelOrder(orderCode) }
+        runCatching { orderSynchronizer.cancelOrder(store, orderCode) }  // KARROT은 분기에서 no-op
             .onFailure { log.warn("취소 전파 실패 — 당근 취소는 유지 (best-effort): {}", orderCode.value, it) }
     }
 }

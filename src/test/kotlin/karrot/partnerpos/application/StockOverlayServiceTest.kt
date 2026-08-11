@@ -1,5 +1,6 @@
 package karrot.partnerpos.application
 
+import karrot.partnerpos.RecordingHappyOrderClient
 import karrot.partnerpos.RecordingPartner
 import karrot.partnerpos.contract.MenuCode
 import karrot.partnerpos.contract.MenuStock
@@ -27,7 +28,7 @@ class StockOverlayServiceTest {
     }
 
     private val stockPartner = StockPartner()
-    private val service = StockOverlayService()
+    private val service = StockOverlayService(PartnerPosStockFinder(RecordingHappyOrderClient()))
     private val menuCodes = listOf(MenuCode("MENU-A"))
 
     @Test

@@ -3,7 +3,6 @@ package karrot.partnerpos.application
 import karrot.partnerpos.contract.MenuCode
 import karrot.partnerpos.contract.MenuStock
 import karrot.partnerpos.contract.PosCommunicationException
-import karrot.partnerpos.contract.StockQueryable
 import karrot.partnerpos.store.Store
 import org.springframework.stereotype.Service
 
@@ -39,22 +38,21 @@ sealed interface StockOverlayResult {
 /**
  * 실시간 재고 오버레이 — AS-IS 6개 호출 지점의 공통 진입점.
  *
- * 파트너가 재고를 지원하는지는 boolean 컬럼 조회가 아니라 타입 검사다:
- * `StockQueryable`을 구현하지 않은 파트너에는 fetchStocks가 존재하지 않는다.
+ * 재고 Pull 가능 여부와 타입별 분기는 [PartnerPosStockFinder]가 판단하고,
+ * 이 서비스는 구매 단계별 실패 정책(soft/hard)만 소유한다.
  */
 @Service
-class StockOverlayService {
+class StockOverlayService(
+    private val stockFinder: PartnerPosStockFinder,
+) {
     fun overlay(
         store: Store,
         menuCodes: List<MenuCode>,
         stage: PurchaseStage,
     ): StockOverlayResult {
-        val context = store.directPos ?: return StockOverlayResult.FromDb  // 직연동 아님
-        val partner = context.partner
-        if (partner !is StockQueryable) return StockOverlayResult.FromDb   // 재고 미지원 파트너
-
         return try {
-            val stocks = partner.fetchStocks(context.partnerStoreCode, menuCodes)
+            val stocks = stockFinder.findStocks(store, menuCodes)
+                ?: return StockOverlayResult.FromDb  // 재고 Pull 미지원 (푸시형·미제공)
             publishStockSnapshot(stocks)
             StockOverlayResult.Overlaid(stocks)
         } catch (e: PosCommunicationException) {

@@ -1,7 +1,6 @@
 package karrot.partnerpos.application
 
 import karrot.partnerpos.contract.PosCommunicationException
-import karrot.partnerpos.contract.StoreRegistrable
 import karrot.partnerpos.store.Store
 import org.springframework.stereotype.Service
 
@@ -13,23 +12,21 @@ sealed interface ActivationResult {
 }
 
 /**
- * 매장 활성화 — capability가 플로우를 가르는 지점.
+ * 매장 활성화 — 파트너측 매장 등록이 플로우를 가르는 지점.
  *
- * StoreRegistrable 파트너(CJ·버거킹)는 파트너측 매장 등록 성공이 활성화의 전제이고,
- * 미지원 파트너(롯데 — 수기 협의)는 즉시 활성화된다.
+ * 등록 지원 여부와 타입별 분기는 [PartnerPosStoreRegistrar]가 판단한다.
+ * 등록이 필요한 파트너(CJ·버거킹·푸드테크)는 등록 성공이 활성화의 전제(hard 의존)이고,
+ * 미지원(롯데·해피오더 — 수기 협의, KARROT — 외부 없음)은 즉시 활성화된다.
  */
 @Service
-class StoreActivationService {
+class StoreActivationService(
+    private val storeRegistrar: PartnerPosStoreRegistrar,
+) {
     fun activate(store: Store): ActivationResult {
-        store.directPos?.let { context ->
-            val partner = context.partner
-            if (partner is StoreRegistrable) {
-                try {
-                    partner.registerStore(context.partnerStoreCode)  // 파트너측 매장 코드로 등록
-                } catch (e: PosCommunicationException) {
-                    return ActivationResult.Failed(e)
-                }
-            }
+        try {
+            storeRegistrar.registerStore(store)  // 미지원 타입은 분기에서 no-op
+        } catch (e: PosCommunicationException) {
+            return ActivationResult.Failed(e)    // 등록 실패 = 활성화 실패 (AS-IS 동일)
         }
 
         markStoreActive(store.id)

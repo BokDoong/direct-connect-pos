@@ -4,6 +4,9 @@ import karrot.partnerpos.application.ActivationResult
 import karrot.partnerpos.application.InMemoryPartnerOrderMappingRepository
 import karrot.partnerpos.application.OrderPlacementService
 import karrot.partnerpos.application.PartnerOrderWriter
+import karrot.partnerpos.application.PartnerPosOrderSynchronizer
+import karrot.partnerpos.application.PartnerPosStockFinder
+import karrot.partnerpos.application.PartnerPosStoreRegistrar
 import karrot.partnerpos.application.PurchaseStage
 import karrot.partnerpos.application.StockOverlayService
 import karrot.partnerpos.application.StockOverlayResult
@@ -95,17 +98,23 @@ class NewPartnerExtensionTest {
         val store = StoreFinder(storeRecords, links, partnerRecords, registry).find(1L)
 
         // 매장 활성화 — capability(StoreRegistrable)에 따라 파트너측 등록이 활성화의 전제가 된다
-        val activated = StoreActivationService().activate(store)
+        val foodTech = RecordingFoodTechClient()
+        val happyOrder = RecordingHappyOrderClient()
+        val activated = StoreActivationService(PartnerPosStoreRegistrar(foodTech)).activate(store)
         assertThat(activated).isEqualTo(ActivationResult.Activated)
         assertThat(subway.registeredStores).containsExactly(StoreCode("SW-001"))
 
         // 주문 등록 — OrderPlacementService는 SUBWAY의 존재를 모른 채 동작한다
         val order = sampleOrder()
-        OrderPlacementService(PartnerOrderWriter(InMemoryPartnerOrderMappingRepository())).place(store, order)
+        OrderPlacementService(
+            PartnerOrderWriter(InMemoryPartnerOrderMappingRepository()),
+            PartnerPosOrderSynchronizer(foodTech, happyOrder),
+        ).place(store, order)
         assertThat(subway.registeredOrders).containsExactly(order)
 
         // 재고 오버레이 — capability(StockQueryable 구현)도 자동으로 인식된다
-        val result = StockOverlayService().overlay(store, listOf(MenuCode("MENU-A")), PurchaseStage.MENU_VIEW)
+        val result = StockOverlayService(PartnerPosStockFinder(happyOrder))
+            .overlay(store, listOf(MenuCode("MENU-A")), PurchaseStage.MENU_VIEW)
         assertThat(result).isEqualTo(
             StockOverlayResult.Overlaid(listOf(MenuStock(MenuCode("MENU-A"), 7))),
         )

@@ -25,7 +25,8 @@ src/main/kotlin/karrot/partnerpos/
 ├── partner/       파트너 구현 계층 — 파트너당 1파일 = 그 파트너의 전체 명세
 ├── spec/          당근 공통 규격서의 코드화 (공통 페이로드)
 ├── transport/     변하지 않는 전송 규약 1벌 (Bearer·타임아웃·재시도 4회·status 판정)
-├── application/   앱 계층 — 파트너 무지, 계약만 소비 (주문 등록/취소 전파/재고 오버레이/매장 활성화)
+├── application/   앱 계층 — 주문/재고/활성화 서비스 + 파트너 타입 분기 3종(PartnerPos*)
+├── legacy/        레거시 클라이언트 경계 — 푸드테크·해피오더 (파트너 주도 규격, 스텁)
 ├── store/         매장 조립 — Store 도메인 모델, StoreFinder(파트너 resolve 유일 지점), 기동 대사
 └── config/        환경 데이터·시크릿 바인딩 (yml) — 코드가 아닌 유일한 것
 ```
