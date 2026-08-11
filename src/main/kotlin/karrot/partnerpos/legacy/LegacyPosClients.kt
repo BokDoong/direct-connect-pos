@@ -3,7 +3,7 @@ package karrot.partnerpos.legacy
 import karrot.partnerpos.contract.MenuCode
 import karrot.partnerpos.contract.MenuStock
 import karrot.partnerpos.contract.OrderCode
-import karrot.partnerpos.contract.PosOrder
+import karrot.partnerpos.contract.Order
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
  * 실제 구현(3중키 매장 식별, 사전검증 등)은 재설계 스코프 밖 — 여기서는 경계만 재현한다.
  */
 interface FoodTechClient {
-    fun registerOrder(order: PosOrder)
+    fun registerOrder(order: Order)
     fun cancelOrder(orderCode: OrderCode)
 
     /** 매장 연동 등록/해지 — AS-IS `/order/channel/store`. */
@@ -23,7 +23,7 @@ interface FoodTechClient {
 }
 
 interface HappyOrderClient {
-    fun registerOrder(order: PosOrder)   // AS-IS: 전달 전 사전검증 포함
+    fun registerOrder(order: Order)   // AS-IS: 전달 전 사전검증 포함
     fun cancelOrder(orderCode: OrderCode)
     fun fetchStocks(storeId: Long, menuCodes: List<MenuCode>): List<MenuStock>
     // 매장 등록은 수기 협의 — API 없음
@@ -34,7 +34,7 @@ interface HappyOrderClient {
 class StubFoodTechClient : FoodTechClient {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun registerOrder(order: PosOrder) = log.info("[stub] foodtech 주문 등록: {}", order.orderCode.value)
+    override fun registerOrder(order: Order) = log.info("[stub] foodtech 주문 등록: {}", order.orderCode.value)
     override fun cancelOrder(orderCode: OrderCode) = log.info("[stub] foodtech 주문 취소: {}", orderCode.value)
     override fun linkStore(storeId: Long) = log.info("[stub] foodtech 매장 연동: {}", storeId)
     override fun unlinkStore(storeId: Long) = log.info("[stub] foodtech 매장 해지: {}", storeId)
@@ -44,7 +44,7 @@ class StubFoodTechClient : FoodTechClient {
 class StubHappyOrderClient : HappyOrderClient {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun registerOrder(order: PosOrder) = log.info("[stub] happyorder 주문 등록: {}", order.orderCode.value)
+    override fun registerOrder(order: Order) = log.info("[stub] happyorder 주문 등록: {}", order.orderCode.value)
     override fun cancelOrder(orderCode: OrderCode) = log.info("[stub] happyorder 주문 취소: {}", orderCode.value)
     override fun fetchStocks(storeId: Long, menuCodes: List<MenuCode>): List<MenuStock> = emptyList()
 }

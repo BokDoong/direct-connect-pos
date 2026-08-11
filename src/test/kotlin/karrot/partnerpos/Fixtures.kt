@@ -9,8 +9,8 @@ import karrot.partnerpos.contract.PartnerKey
 import karrot.partnerpos.contract.PartnerPolicy
 import karrot.partnerpos.contract.PaymentMethod
 import karrot.partnerpos.contract.PosCommunicationException
-import karrot.partnerpos.contract.PosOrder
-import karrot.partnerpos.contract.PosOrderItem
+import karrot.partnerpos.contract.Order
+import karrot.partnerpos.contract.OrderItem
 import karrot.partnerpos.contract.StoreCode
 import karrot.partnerpos.legacy.FoodTechClient
 import karrot.partnerpos.legacy.HappyOrderClient
@@ -23,12 +23,12 @@ import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.web.client.RestClient
 import kotlin.time.Duration.Companion.seconds
 
-fun sampleOrder(orderCode: String = "2608110000ABCD") = PosOrder(
+fun sampleOrder(orderCode: String = "2608110000ABCD") = Order(
     orderCode = OrderCode(orderCode),
     storeCode = StoreCode("STORE-001"),
     items = listOf(
-        PosOrderItem(menuCode = MenuCode("MENU-A"), quantity = 2, unitPrice = 5_000),
-        PosOrderItem(menuCode = MenuCode("MENU-B"), quantity = 1, unitPrice = 12_000),
+        OrderItem(menuCode = MenuCode("MENU-A"), quantity = 2, unitPrice = 5_000),
+        OrderItem(menuCode = MenuCode("MENU-B"), quantity = 1, unitPrice = 12_000),
     ),
     totalAmount = 22_000,
     paymentMethod = PaymentMethod.KARROT_PAY_MONEY,
@@ -39,12 +39,12 @@ open class RecordingPartner(
     override val key: PartnerKey = PartnerKey("RECORDING"),
     override val policy: PartnerPolicy = PartnerPolicy(unacceptedAutoCancel = 600.seconds),
 ) : DirectPosPartner {
-    val registeredOrders = mutableListOf<PosOrder>()
+    val registeredOrders = mutableListOf<Order>()
     val canceledOrderCodes = mutableListOf<OrderCode>()
     var failOnRegister = false
     var failOnCancel = false
 
-    override fun registerOrder(order: PosOrder) {
+    override fun registerOrder(order: Order) {
         if (failOnRegister) throw PosCommunicationException("register failed (stub)")
         registeredOrders += order
     }
@@ -91,12 +91,12 @@ fun happyOrderStore() = Store(id = 4L, name = "해피오더 매장", partnerType
 
 /** 레거시 클라이언트 더블 — 호출을 기록한다. */
 class RecordingFoodTechClient : FoodTechClient {
-    val registeredOrders = mutableListOf<PosOrder>()
+    val registeredOrders = mutableListOf<Order>()
     val canceledOrderCodes = mutableListOf<OrderCode>()
     val linkedStoreIds = mutableListOf<Long>()
     val unlinkedStoreIds = mutableListOf<Long>()
 
-    override fun registerOrder(order: PosOrder) { registeredOrders += order }
+    override fun registerOrder(order: Order) { registeredOrders += order }
     override fun cancelOrder(orderCode: OrderCode) { canceledOrderCodes += orderCode }
     override fun linkStore(storeId: Long) { linkedStoreIds += storeId }
     override fun unlinkStore(storeId: Long) { unlinkedStoreIds += storeId }
@@ -105,10 +105,10 @@ class RecordingFoodTechClient : FoodTechClient {
 class RecordingHappyOrderClient(
     var stocks: List<MenuStock> = emptyList(),
 ) : HappyOrderClient {
-    val registeredOrders = mutableListOf<PosOrder>()
+    val registeredOrders = mutableListOf<Order>()
     val canceledOrderCodes = mutableListOf<OrderCode>()
 
-    override fun registerOrder(order: PosOrder) { registeredOrders += order }
+    override fun registerOrder(order: Order) { registeredOrders += order }
     override fun cancelOrder(orderCode: OrderCode) { canceledOrderCodes += orderCode }
     override fun fetchStocks(storeId: Long, menuCodes: List<MenuCode>): List<MenuStock> = stocks
 }

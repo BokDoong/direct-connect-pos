@@ -1,7 +1,7 @@
 package karrot.partnerpos.application
 
 import karrot.partnerpos.contract.OrderCode
-import karrot.partnerpos.contract.PosOrder
+import karrot.partnerpos.contract.Order
 import karrot.partnerpos.legacy.FoodTechClient
 import karrot.partnerpos.legacy.HappyOrderClient
 import karrot.partnerpos.store.PartnerType
@@ -21,7 +21,7 @@ class PosOrderSynchronizer(
     private val foodTechClient: FoodTechClient,
     private val happyOrderClient: HappyOrderClient,
 ) {
-    fun registerOrder(store: Store, order: PosOrder) {
+    fun registerOrder(store: Store, order: Order) {
         when (store.partnerType) {
             PartnerType.INTEGRATED_PARTNER -> checkNotNull(store.directPos).partner.registerOrder(order)
             PartnerType.FOODTECH -> foodTechClient.registerOrder(order)

@@ -20,17 +20,17 @@ data class MenuStock(val menuCode: MenuCode, val quantity: Int)
 /** 당근페이 결제수단. 파트너별 코드 매핑은 각 파트너 구현체 안에서만 일어난다. */
 enum class PaymentMethod { KARROT_PAY_MONEY, CARD }
 
-data class PosOrderItem(
+data class OrderItem(
     val menuCode: MenuCode,
     val quantity: Int,
     val unitPrice: Long,
 )
 
 /** 파트너로 내보내는 주문의 도메인 표현 — 어느 파트너의 용어에도 종속되지 않는다. */
-data class PosOrder(
+data class Order(
     val orderCode: OrderCode,
     val storeCode: StoreCode,
-    val items: List<PosOrderItem>,
+    val items: List<OrderItem>,
     val totalAmount: Long,
     val paymentMethod: PaymentMethod,
 )

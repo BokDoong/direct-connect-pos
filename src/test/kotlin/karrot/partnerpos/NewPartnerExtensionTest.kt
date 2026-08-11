@@ -19,7 +19,7 @@ import karrot.partnerpos.contract.MenuStock
 import karrot.partnerpos.contract.OrderCode
 import karrot.partnerpos.contract.PartnerKey
 import karrot.partnerpos.contract.PartnerPolicy
-import karrot.partnerpos.contract.PosOrder
+import karrot.partnerpos.contract.Order
 import karrot.partnerpos.contract.StockQueryable
 import karrot.partnerpos.contract.StoreCode
 import karrot.partnerpos.contract.StoreRegistrable
@@ -54,10 +54,10 @@ class NewPartnerExtensionTest {
         override val key = PartnerKey("SUBWAY")
         override val policy = PartnerPolicy(unacceptedAutoCancel = 480.seconds)
 
-        val registeredOrders = mutableListOf<PosOrder>()
+        val registeredOrders = mutableListOf<Order>()
         val registeredStores = mutableListOf<StoreCode>()
 
-        override fun registerOrder(order: PosOrder) {
+        override fun registerOrder(order: Order) {
             registeredOrders += order
         }
 

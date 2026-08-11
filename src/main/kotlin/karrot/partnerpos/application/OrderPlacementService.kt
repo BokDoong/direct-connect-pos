@@ -1,7 +1,7 @@
 package karrot.partnerpos.application
 
 import karrot.partnerpos.contract.OrderCode
-import karrot.partnerpos.contract.PosOrder
+import karrot.partnerpos.contract.Order
 import karrot.partnerpos.store.PartnerType
 import karrot.partnerpos.store.Store
 import org.slf4j.LoggerFactory
@@ -23,7 +23,7 @@ class OrderPlacementService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun place(store: Store, order: PosOrder) {
+    fun place(store: Store, order: Order) {
         try {
             posOrderSynchronizer.registerOrder(store, order)
         } catch (e: Exception) {
@@ -56,7 +56,7 @@ class OrderPlacementService(
 
     /** 결제 취소 보상 — 당근페이 연동은 스코프 밖. 위치만 표시하는 의사코드. */
     @Suppress("UNUSED_PARAMETER")
-    private fun cancelPayment(order: PosOrder) {
+    private fun cancelPayment(order: Order) {
         // pseudocode: karrotPayClient.cancel(order.paymentId)
     }
 

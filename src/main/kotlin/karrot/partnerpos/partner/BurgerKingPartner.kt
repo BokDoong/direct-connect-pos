@@ -7,7 +7,7 @@ import karrot.partnerpos.contract.OrderCode
 import karrot.partnerpos.contract.PartnerKey
 import karrot.partnerpos.contract.PartnerPolicy
 import karrot.partnerpos.contract.PaymentMethod
-import karrot.partnerpos.contract.PosOrder
+import karrot.partnerpos.contract.Order
 import karrot.partnerpos.contract.StoreCode
 import karrot.partnerpos.contract.StoreRegistrable
 import karrot.partnerpos.spec.CommonOrderPayload
@@ -36,7 +36,7 @@ class BurgerKingPartner(
     override val policy = PartnerPolicy(unacceptedAutoCancel = 600.seconds)
     private val endpoint = props.endpointOf(KEY)
 
-    override fun registerOrder(order: PosOrder) {
+    override fun registerOrder(order: Order) {
         transport.post(
             endpoint, REGISTER_ORDER_PATH,
             BurgerKingOrderPayload(

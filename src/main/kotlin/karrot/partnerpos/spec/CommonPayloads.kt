@@ -1,6 +1,6 @@
 package karrot.partnerpos.spec
 
-import karrot.partnerpos.contract.PosOrder
+import karrot.partnerpos.contract.Order
 
 /**
  * 당근 공통 규격서의 코드화 — CJ·롯데는 이 페이로드를 그대로 쓰고,
@@ -15,7 +15,7 @@ data class CommonOrderPayload(
     data class Item(val menuCode: String, val quantity: Int, val unitPrice: Long)
 
     companion object {
-        fun from(order: PosOrder) = CommonOrderPayload(
+        fun from(order: Order) = CommonOrderPayload(
             orderCode = order.orderCode.value,
             storeCode = order.storeCode.value,
             totalAmount = order.totalAmount,

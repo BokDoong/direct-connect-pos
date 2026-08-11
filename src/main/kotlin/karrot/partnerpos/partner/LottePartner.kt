@@ -5,7 +5,7 @@ import karrot.partnerpos.contract.DirectPosPartner
 import karrot.partnerpos.contract.OrderCode
 import karrot.partnerpos.contract.PartnerKey
 import karrot.partnerpos.contract.PartnerPolicy
-import karrot.partnerpos.contract.PosOrder
+import karrot.partnerpos.contract.Order
 import karrot.partnerpos.spec.CommonOrderPayload
 import karrot.partnerpos.spec.OrderCancelPayload
 import karrot.partnerpos.transport.PosApiTransport
@@ -29,7 +29,7 @@ class LottePartner(
     override val policy = PartnerPolicy(unacceptedAutoCancel = 300.seconds)
     private val endpoint = props.endpointOf(KEY)
 
-    override fun registerOrder(order: PosOrder) {
+    override fun registerOrder(order: Order) {
         transport.post(endpoint, REGISTER_ORDER_PATH, CommonOrderPayload.from(order))
     }
 

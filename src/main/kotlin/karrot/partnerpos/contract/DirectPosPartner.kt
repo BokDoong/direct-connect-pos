@@ -11,7 +11,7 @@ import kotlin.time.Duration
 interface DirectPosPartner {
     val key: PartnerKey
     val policy: PartnerPolicy
-    fun registerOrder(order: PosOrder)
+    fun registerOrder(order: Order)
     fun cancelOrder(orderCode: OrderCode)
 }
 
