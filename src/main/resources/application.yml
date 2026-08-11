@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: partner-pos
+
+# 코드가 아닌 유일한 것 — 환경 데이터(base-url)와 시크릿(auth-key).
+# capability·정책값은 각 파트너 구현체 코드에 있다 (하이브리드 원칙).
+# auth-key는 실환경에서 환경변수/시크릿 스토어로 주입한다 (AS-IS 평문 DB 저장의 교정).
+partner-pos:
+  endpoints:
+    CJ_FOODVILLE:
+      base-url: https://pos.cj-foodville.example.com
+      auth-key: ${CJ_FOODVILLE_AUTH_KEY:local-demo-cj-key}
+    LOTTE_GRS:
+      base-url: https://pos.lotte-grs.example.com
+      auth-key: ${LOTTE_GRS_AUTH_KEY:local-demo-lotte-key}
+    BURGER_KING:
+      base-url: https://pos.burger-king.example.com
+      auth-key: ${BURGER_KING_AUTH_KEY:local-demo-bk-key}
