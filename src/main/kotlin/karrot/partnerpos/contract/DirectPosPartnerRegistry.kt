@@ -20,6 +20,9 @@ class DirectPosPartnerRegistry(partners: List<DirectPosPartner>) {
             }
         }
 
+    /** 등록된 전체 키 — 기동 시 코드↔DB 대사(reconciliation)용. */
+    val keys: Set<PartnerKey> get() = byKey.keys
+
     operator fun get(key: PartnerKey): DirectPosPartner =
         byKey[key] ?: throw IllegalStateException("no partner registered for key: $key")
 }
