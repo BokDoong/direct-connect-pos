@@ -2,7 +2,6 @@ package karrot.partnerpos.application
 
 import karrot.partnerpos.contract.PosCommunicationException
 import karrot.partnerpos.contract.StoreRegistrable
-import karrot.partnerpos.store.PartnerType
 import karrot.partnerpos.store.Store
 import org.springframework.stereotype.Service
 
@@ -22,14 +21,12 @@ sealed interface ActivationResult {
 @Service
 class StoreActivationService {
     fun activate(store: Store): ActivationResult {
-        if (store.partnerType == PartnerType.INTEGRATED_PARTNER) {
-            val partner = store.directPosPartner()
-            if (partner is StoreRegistrable) {
-                try {
-                    partner.registerStore(store.partnerStoreCode())  // 파트너측 매장 코드로 등록
-                } catch (e: PosCommunicationException) {
-                    return ActivationResult.Failed(e)
-                }
+        val partner = store.directPosPartner
+        if (partner is StoreRegistrable) {
+            try {
+                partner.registerStore(store.partnerStoreCode!!)  // 파트너측 매장 코드로 등록
+            } catch (e: PosCommunicationException) {
+                return ActivationResult.Failed(e)
             }
         }
 

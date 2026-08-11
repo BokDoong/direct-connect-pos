@@ -21,7 +21,7 @@ class OrderPlacementService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun place(store: Store, order: PosOrder) {
-        val partner = store.directPosPartner()
+        val partner = checkNotNull(store.directPosPartner) { "not an integrated-partner store: ${store.id}" }
 
         try {
             partner.registerOrder(order)

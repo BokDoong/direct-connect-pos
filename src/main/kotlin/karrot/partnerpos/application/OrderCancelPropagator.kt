@@ -1,7 +1,6 @@
 package karrot.partnerpos.application
 
 import karrot.partnerpos.contract.OrderCode
-import karrot.partnerpos.store.PartnerType
 import karrot.partnerpos.store.Store
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -18,9 +17,9 @@ class OrderCancelPropagator {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun propagate(store: Store, orderCode: OrderCode) {
-        if (store.partnerType != PartnerType.INTEGRATED_PARTNER) return
+        val partner = store.directPosPartner ?: return  // 직연동이 아니면 전파할 곳이 없다
 
-        runCatching { store.directPosPartner().cancelOrder(orderCode) }
+        runCatching { partner.cancelOrder(orderCode) }
             .onFailure { log.warn("취소 전파 실패 — 당근 취소는 유지 (best-effort): {}", orderCode.value, it) }
     }
 }

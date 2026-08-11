@@ -4,7 +4,6 @@ import karrot.partnerpos.contract.MenuCode
 import karrot.partnerpos.contract.MenuStock
 import karrot.partnerpos.contract.PosCommunicationException
 import karrot.partnerpos.contract.StockQueryable
-import karrot.partnerpos.store.PartnerType
 import karrot.partnerpos.store.Store
 import org.springframework.stereotype.Service
 
@@ -50,12 +49,12 @@ class StockOverlayService {
         menuCodes: List<MenuCode>,
         stage: PurchaseStage,
     ): StockOverlayResult {
-        if (store.partnerType != PartnerType.INTEGRATED_PARTNER) return StockOverlayResult.FromDb
-        val partner = store.directPosPartner()
+        // null(직연동 아님)과 미구현(재고 미지원 파트너)이 한 검사로 걸러진다 — null !is StockQueryable
+        val partner = store.directPosPartner
         if (partner !is StockQueryable) return StockOverlayResult.FromDb
 
         return try {
-            val stocks = partner.fetchStocks(store.partnerStoreCode(), menuCodes)
+            val stocks = partner.fetchStocks(store.partnerStoreCode!!, menuCodes)
             publishStockSnapshot(stocks)
             StockOverlayResult.Overlaid(stocks)
         } catch (e: PosCommunicationException) {

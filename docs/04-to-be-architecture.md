@@ -87,7 +87,7 @@ flowchart TB
 | `OrderCancelPropagator` | 앱 | 당근발 취소만 전파. 실패해도 삼킴(best-effort) — 당근 취소는 이미 확정 | 〃 |
 | `StockOverlayService` | 앱 | 재고 오버레이. `is StockQueryable` 검사 후 조회, **PurchaseStage별 soft/hard 실패 정책 소유** (파트너와 무관한 구매 단계 속성 — Q1 결정) | 〃 |
 | `StoreActivationService` | 앱 | 활성화 플로우. `is StoreRegistrable`이면 등록 성공이 활성화의 전제(hard 의존), 아니면 즉시 활성화 | 〃 |
-| `StoreFinder` / `Store` | 앱 | entity → Store 도메인 모델 조립의 단일 지점 (AS-IS 컨벤션 재현). INTEGRATED 매장은 파트너(행위)·partner_store_code를 resolve해 실음. Store는 생성 시점 양방향 불변식 + non-null 접근자로 방어 | **데이터(key)→행위(전략) 번역의 유일 지점** — registry 의존이 서비스 4곳에서 여기로 응집 (D6·D7, docs/06 §3) |
+| `StoreFinder` / `Store` | 앱 | entity → Store 도메인 모델 조립의 단일 지점 (AS-IS 컨벤션 재현). INTEGRATED 매장은 파트너(행위)·partner_store_code를 resolve해 실음. Store는 생성 시점 양방향 불변식으로 방어 — null이 곧 "직연동 아님" | **데이터(key)→행위(전략) 번역의 유일 지점** — registry 의존이 서비스 4곳에서 여기로 응집 (D6·D7, docs/06 §3) |
 | `DirectPosPartnerRegistry` | 계약 | `List<DirectPosPartner>`를 주입받아 `Map<PartnerKey, _>`로 색인. 기동 시 중복/누락 검증 | Spring이 구현체를 모아줌 — 등록 코드 0줄. 코드↔DB 정합은 `PartnerRegistryReconciler`가 기동 시 대사 |
 | `DirectPosPartner` | 계약 | 필수 계약: key, policy, 주문 등록/취소. **전 파트너가 반드시 하는 것만** 여기에 | 반환은 정상/예외 — 응답 body 미활용(AS-IS 확인)을 반영해 `Unit` |
 | `StockQueryable` / `StoreRegistrable` | 계약 | 선택 capability. supports_* boolean 컬럼의 후계자 — **지원 여부와 구현이 같은 파일에서 움직임** | |

@@ -102,9 +102,10 @@ StoreFinder.find(storeId)
 - **영속 모델과 도메인 모델의 분리가 전제**: entity(StoreRecord)는 데이터만, StoreFinder가 돌려주는
   Store(도메인 모델)가 resolve된 파트너를 든다. 싱글턴 빈을 영속 모델에 싣는 문제(직렬화·캐시·equals)를 회피.
 - **기존 `partnerType: PartnerType` enum 유지**: sealed 재모델링은 기존 모델 호환·작업 범위상 기각(D6).
-  잃는 타입 안전성은 두 겹으로 보완 — ① Store 생성 시점의 양방향 불변식(INTEGRATED ⇔ 파트너 맥락 보유,
-  조립 지점이 StoreFinder 하나뿐이므로 잘못 조립된 Store는 존재 불가) ② non-null 접근자
-  (`directPosPartner()`, `partnerStoreCode()`) — 호출부에 null 체크가 퍼지지 않음.
+  잃는 타입 안전성은 Store 생성 시점의 양방향 불변식(INTEGRATED ⇔ 파트너 맥락 보유)으로 보완 —
+  조립 지점이 StoreFinder 하나뿐이므로 잘못 조립된 Store는 존재 불가. 그래서 property를 직접 노출해도
+  안전하다: `directPosPartner == null`이 곧 "직연동 아님"이고, 앱 서비스의 partnerType 분기가
+  null 검사(`partner !is StockQueryable` 등)로 수렴한다.
 - **registry 의존의 응집**: 앱 서비스 4곳이 각자 registry를 조회하던 구조가 StoreFinder 1곳으로 모이고,
   서비스 시그니처는 `(partnerKey, storeCode, …)` → `(store, …)`가 된다. 파트너측 매장 코드
   (`partner_store_code`)도 같은 맥락으로 조립되어, 재고 조회·매장 등록이 올바른 코드로 나간다.
