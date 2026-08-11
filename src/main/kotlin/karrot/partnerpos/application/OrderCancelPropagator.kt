@@ -17,7 +17,7 @@ class OrderCancelPropagator {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun propagate(store: Store, orderCode: OrderCode) {
-        val partner = store.directPosPartner ?: return  // 직연동이 아니면 전파할 곳이 없다
+        val partner = store.directPos?.partner ?: return  // 직연동이 아니면 전파할 곳이 없다
 
         runCatching { partner.cancelOrder(orderCode) }
             .onFailure { log.warn("취소 전파 실패 — 당근 취소는 유지 (best-effort): {}", orderCode.value, it) }

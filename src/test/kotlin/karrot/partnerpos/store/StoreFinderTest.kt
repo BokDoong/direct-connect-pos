@@ -29,8 +29,8 @@ class StoreFinderTest {
         val store = finder.find(10L)
 
         assertThat(store.partnerType).isEqualTo(PartnerType.INTEGRATED_PARTNER)
-        assertThat(store.directPosPartner).isSameAs(cj)                        // 데이터→행위 번역 완료
-        assertThat(store.partnerStoreCode).isEqualTo(StoreCode("CJ-STORE-042"))
+        assertThat(store.directPos!!.partner).isSameAs(cj)                     // 데이터→행위 번역 완료
+        assertThat(store.directPos!!.partnerStoreCode).isEqualTo(StoreCode("CJ-STORE-042"))
     }
 
     @Test
@@ -41,7 +41,7 @@ class StoreFinderTest {
         val store = finder.find(20L)
 
         assertThat(store.partnerType).isEqualTo(PartnerType.KARROT)
-        assertThat(store.directPosPartner).isNull()
+        assertThat(store.directPos).isNull()
     }
 
     @Test

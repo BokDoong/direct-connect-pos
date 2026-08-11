@@ -62,7 +62,7 @@ class StoreFinder(
     fun find(storeId: Long): Store {
         val record = storeRecords.getById(storeId)
         if (record.partnerType != PartnerType.INTEGRATED_PARTNER) {
-            return Store(record.id, record.name, record.partnerType, directPosPartner = null, partnerStoreCode = null)
+            return Store(record.id, record.name, record.partnerType, directPos = null)
         }
 
         val link = partnerStoreLinks.getByStoreId(storeId)
@@ -71,8 +71,10 @@ class StoreFinder(
             id = record.id,
             name = record.name,
             partnerType = record.partnerType,
-            directPosPartner = registry[PartnerKey(partnerKey)],        // 미등록 키는 여기서 fail-loud
-            partnerStoreCode = StoreCode(link.partnerStoreCode),
+            directPos = DirectPosContext(
+                partner = registry[PartnerKey(partnerKey)],             // 미등록 키는 여기서 fail-loud
+                partnerStoreCode = StoreCode(link.partnerStoreCode),
+            ),
         )
     }
 }

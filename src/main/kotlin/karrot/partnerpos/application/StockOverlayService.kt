@@ -49,12 +49,12 @@ class StockOverlayService {
         menuCodes: List<MenuCode>,
         stage: PurchaseStage,
     ): StockOverlayResult {
-        // null(직연동 아님)과 미구현(재고 미지원 파트너)이 한 검사로 걸러진다 — null !is StockQueryable
-        val partner = store.directPosPartner
-        if (partner !is StockQueryable) return StockOverlayResult.FromDb
+        val context = store.directPos ?: return StockOverlayResult.FromDb  // 직연동 아님
+        val partner = context.partner
+        if (partner !is StockQueryable) return StockOverlayResult.FromDb   // 재고 미지원 파트너
 
         return try {
-            val stocks = partner.fetchStocks(store.partnerStoreCode!!, menuCodes)
+            val stocks = partner.fetchStocks(context.partnerStoreCode, menuCodes)
             publishStockSnapshot(stocks)
             StockOverlayResult.Overlaid(stocks)
         } catch (e: PosCommunicationException) {

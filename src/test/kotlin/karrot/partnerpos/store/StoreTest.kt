@@ -16,39 +16,37 @@ import org.junit.jupiter.api.assertThrows
 class StoreTest {
 
     @Test
-    @DisplayName("INTEGRATED_PARTNER인데 파트너 없이 조립하면 생성 시점에 실패한다")
-    fun integratedWithoutPartnerFailsAtConstruction() {
+    @DisplayName("INTEGRATED_PARTNER인데 파트너 맥락 없이 조립하면 생성 시점에 실패한다")
+    fun integratedWithoutContextFailsAtConstruction() {
         assertThrows<IllegalArgumentException> {
-            Store(1L, "매장", PartnerType.INTEGRATED_PARTNER, directPosPartner = null, partnerStoreCode = null)
+            Store(1L, "매장", PartnerType.INTEGRATED_PARTNER, directPos = null)
         }
     }
 
     @Test
     @DisplayName("직연동이 아닌데 파트너 맥락을 들면 생성 시점에 실패한다 — 불변식은 양방향")
-    fun nonIntegratedWithPartnerFailsAtConstruction() {
+    fun nonIntegratedWithContextFailsAtConstruction() {
         assertThrows<IllegalArgumentException> {
             Store(
                 1L, "매장", PartnerType.KARROT,
-                directPosPartner = RecordingPartner(),
-                partnerStoreCode = StoreCode("STORE-001"),
+                directPos = DirectPosContext(RecordingPartner(), StoreCode("STORE-001")),
             )
         }
     }
 
     @Test
-    @DisplayName("직연동 매장은 조립된 파트너와 매장 코드를 property로 직접 노출한다")
+    @DisplayName("직연동 매장의 파트너와 매장 코드는 컨텍스트 안에서 non-null — '둘은 함께'가 타입으로 보장된다")
     fun integratedStoreExposesContext() {
         val partner = RecordingPartner()
         val store = integratedStore(partner, partnerStoreCode = "CJ-STORE-042")
 
-        assertThat(store.directPosPartner).isSameAs(partner)
-        assertThat(store.partnerStoreCode).isEqualTo(StoreCode("CJ-STORE-042"))
+        assertThat(store.directPos!!.partner).isSameAs(partner)
+        assertThat(store.directPos!!.partnerStoreCode).isEqualTo(StoreCode("CJ-STORE-042"))
     }
 
     @Test
-    @DisplayName("직연동이 아닌 매장의 파트너는 null — 불변식 덕분에 null이 곧 '직연동 아님'이다")
-    fun nonIntegratedStoreHasNoPartner() {
-        assertThat(karrotStore().directPosPartner).isNull()
-        assertThat(karrotStore().partnerStoreCode).isNull()
+    @DisplayName("직연동이 아닌 매장의 컨텍스트는 null — 불변식 덕분에 null이 곧 '직연동 아님'이다")
+    fun nonIntegratedStoreHasNoContext() {
+        assertThat(karrotStore().directPos).isNull()
     }
 }

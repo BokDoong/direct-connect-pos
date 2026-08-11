@@ -21,12 +21,14 @@ sealed interface ActivationResult {
 @Service
 class StoreActivationService {
     fun activate(store: Store): ActivationResult {
-        val partner = store.directPosPartner
-        if (partner is StoreRegistrable) {
-            try {
-                partner.registerStore(store.partnerStoreCode!!)  // 파트너측 매장 코드로 등록
-            } catch (e: PosCommunicationException) {
-                return ActivationResult.Failed(e)
+        store.directPos?.let { context ->
+            val partner = context.partner
+            if (partner is StoreRegistrable) {
+                try {
+                    partner.registerStore(context.partnerStoreCode)  // 파트너측 매장 코드로 등록
+                } catch (e: PosCommunicationException) {
+                    return ActivationResult.Failed(e)
+                }
             }
         }
 

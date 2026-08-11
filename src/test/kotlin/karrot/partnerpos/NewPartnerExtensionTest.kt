@@ -111,6 +111,6 @@ class NewPartnerExtensionTest {
         )
 
         // 정책값도 구현체 선언이 그대로 흘러든다
-        assertThat(store.directPosPartner!!.policy.unacceptedAutoCancel).isEqualTo(480.seconds)
+        assertThat(store.directPos!!.partner.policy.unacceptedAutoCancel).isEqualTo(480.seconds)
     }
 }

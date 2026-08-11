@@ -11,6 +11,7 @@ import karrot.partnerpos.contract.PosCommunicationException
 import karrot.partnerpos.contract.PosOrder
 import karrot.partnerpos.contract.PosOrderItem
 import karrot.partnerpos.contract.StoreCode
+import karrot.partnerpos.store.DirectPosContext
 import karrot.partnerpos.store.PartnerType
 import karrot.partnerpos.store.Store
 import karrot.partnerpos.transport.PosApiTransport
@@ -71,16 +72,14 @@ fun integratedStore(partner: DirectPosPartner, partnerStoreCode: String = "STORE
     id = 1L,
     name = "직연동 테스트 매장",
     partnerType = PartnerType.INTEGRATED_PARTNER,
-    directPosPartner = partner,
-    partnerStoreCode = StoreCode(partnerStoreCode),
+    directPos = DirectPosContext(partner = partner, partnerStoreCode = StoreCode(partnerStoreCode)),
 )
 
 fun karrotStore() = Store(
     id = 2L,
     name = "당근 자체 매장",
     partnerType = PartnerType.KARROT,
-    directPosPartner = null,
-    partnerStoreCode = null,
+    directPos = null,
 )
 
 fun propertiesFor(key: PartnerKey): DirectPosProperties = propertiesFor(listOf(key))

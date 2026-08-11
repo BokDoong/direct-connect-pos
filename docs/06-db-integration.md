@@ -94,18 +94,19 @@ StoreFinder.find(storeId)
   ├ stores 조회 → partnerType
   ├ (INTEGRATED_PARTNER면) partner_stores 조회 → partner_id + partner_store_code
   ├ partners 조회 → partner_key (A안: id→key 번역, D8)
-  └ registry[PartnerKey(partner_key)] → Store(partnerType, directPosPartner, partnerStoreCode)
+  └ registry[PartnerKey(partner_key)] → Store(partnerType, directPos = DirectPosContext(partner, partnerStoreCode))
                                   ↑ 데이터(key)가 행위(전략)로 번역되는 유일한 지점
 ```
 
 **설계 결정의 요지:**
 - **영속 모델과 도메인 모델의 분리가 전제**: entity(StoreRecord)는 데이터만, StoreFinder가 돌려주는
   Store(도메인 모델)가 resolve된 파트너를 든다. 싱글턴 빈을 영속 모델에 싣는 문제(직렬화·캐시·equals)를 회피.
-- **기존 `partnerType: PartnerType` enum 유지**: sealed 재모델링은 기존 모델 호환·작업 범위상 기각(D6).
-  잃는 타입 안전성은 Store 생성 시점의 양방향 불변식(INTEGRATED ⇔ 파트너 맥락 보유)으로 보완 —
-  조립 지점이 StoreFinder 하나뿐이므로 잘못 조립된 Store는 존재 불가. 그래서 property를 직접 노출해도
-  안전하다: `directPosPartner == null`이 곧 "직연동 아님"이고, 앱 서비스의 partnerType 분기가
-  null 검사(`partner !is StockQueryable` 등)로 수렴한다.
+- **기존 `partnerType: PartnerType` enum 유지 + 컨텍스트 응집**: sealed 재모델링은 기존 모델 호환·작업
+  범위상 기각(D6). 대신 함께 다니는 두 값(resolve된 파트너, 파트너측 매장 코드)은 `DirectPosContext`
+  값 객체로 묶어 "둘은 함께"를 타입으로 보장하고(컨텍스트 안은 전부 non-null → 호출부 `!!` 소멸),
+  "INTEGRATED ⇔ 컨텍스트 존재"만 생성 시점 양방향 불변식으로 검사한다 — 조립 지점이 StoreFinder
+  하나뿐이므로 잘못 조립된 Store는 존재 불가. `directPos == null`이 곧 "직연동 아님"이라
+  앱 서비스의 partnerType 분기가 null 검사로 수렴한다.
 - **registry 의존의 응집**: 앱 서비스 4곳이 각자 registry를 조회하던 구조가 StoreFinder 1곳으로 모이고,
   서비스 시그니처는 `(partnerKey, storeCode, …)` → `(store, …)`가 된다. 파트너측 매장 코드
   (`partner_store_code`)도 같은 맥락으로 조립되어, 재고 조회·매장 등록이 올바른 코드로 나간다.
