@@ -15,7 +15,6 @@ data class DirectPosProperties(
 ) {
     data class EndpointProperties(
         val baseUrl: String,
-        /** 실환경에서는 시크릿 스토어/환경변수로 주입한다 — AS-IS 평문 DB 저장(P7)의 교정. */
         val authKey: String,
     )
 

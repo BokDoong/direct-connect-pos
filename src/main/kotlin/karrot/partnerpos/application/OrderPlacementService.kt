@@ -27,12 +27,12 @@ class OrderPlacementService(
         try {
             posOrderSynchronizer.registerOrder(store, order)
         } catch (e: Exception) {
-            cancelPayment(order) // 등록 실패 → 결제 보상 (의사코드)
+            cancelPayment(order)
             throw e
         }
 
         try {
-            posOrderWriter.write(store, order.orderCode)  // 타입별 매핑 원장 저장 분기는 Writer 소관
+            posOrderWriter.write(store, order.orderCode)
         } catch (e: Exception) {
             runCatching { posOrderSynchronizer.cancelOrder(store, order.orderCode) }
                 .onFailure { log.error("유령주문 보상 취소 전파 실패: {}", order.orderCode.value, it) }
@@ -40,6 +40,7 @@ class OrderPlacementService(
             throw e
         }
 
+        // 미수락 지연 취소 > 쿠폰, 할인 감소 > .. ( 여기서 부터는 모두 예외를 안던짐 )
         scheduleUnacceptedAutoCancel(order.orderCode, unacceptedAutoCancelDelay(store))
     }
 
