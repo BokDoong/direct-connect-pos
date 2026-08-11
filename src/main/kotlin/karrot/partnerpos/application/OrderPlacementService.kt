@@ -1,9 +1,9 @@
 package karrot.partnerpos.application
 
-import karrot.partnerpos.contract.DirectPosPartnerRegistry
 import karrot.partnerpos.contract.OrderCode
 import karrot.partnerpos.contract.PartnerKey
 import karrot.partnerpos.contract.PosOrder
+import karrot.partnerpos.store.Store
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
@@ -31,16 +31,17 @@ class InMemoryPartnerOrderMappingRepository : PartnerOrderMappingRepository {
 /**
  * 결제 완료 → 파트너 주문 등록 오케스트레이션.
  * 고객 동기 경로다 — AS-IS와 동일하게 파트너 등록 완료까지가 주문 완료의 조건.
+ *
+ * 파트너 결정은 이 서비스의 관심사가 아니다 — StoreFinder가 조립한 [Store]가 파트너를 물고 온다.
  */
 @Service
 class OrderPlacementService(
-    private val registry: DirectPosPartnerRegistry,
     private val mappingRepository: PartnerOrderMappingRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun place(partnerKey: PartnerKey, order: PosOrder) {
-        val partner = registry[partnerKey]
+    fun place(store: Store, order: PosOrder) {
+        val partner = store.directPosPartner()
 
         try {
             partner.registerOrder(order)
@@ -50,7 +51,7 @@ class OrderPlacementService(
         }
 
         try {
-            mappingRepository.save(order.orderCode, partnerKey)
+            mappingRepository.save(order.orderCode, partner.key)
         } catch (e: Exception) {
             // 유령주문 방지: 파트너에는 등록됐는데 당근에 기록이 없는 상태를 즉시 해소한다.
             // 취소 전파 자체가 실패해도 원인 예외를 삼키지 않는다 (best-effort + 로깅).
@@ -71,7 +72,7 @@ class OrderPlacementService(
 
     /**
      * 미수락 자동취소 타이머 예약 — AS-IS: SQS 지연 메시지, delay = 파트너 정책값.
-     * 인프라 연동은 스코프 밖. 파트너 정책값이 여기로 흘러드는 경로만 보인다.
+     * 인프라 연동은 스코프 밖. 파트너 정책값(코드)이 여기로 흘러드는 경로만 보인다.
      */
     @Suppress("UNUSED_PARAMETER")
     private fun scheduleUnacceptedAutoCancel(orderCode: OrderCode, delay: Duration) {

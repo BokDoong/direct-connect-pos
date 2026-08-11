@@ -11,6 +11,8 @@ import karrot.partnerpos.contract.PosCommunicationException
 import karrot.partnerpos.contract.PosOrder
 import karrot.partnerpos.contract.PosOrderItem
 import karrot.partnerpos.contract.StoreCode
+import karrot.partnerpos.store.PartnerType
+import karrot.partnerpos.store.Store
 import karrot.partnerpos.transport.PosApiTransport
 import karrot.partnerpos.transport.RetrySpec
 import org.springframework.test.web.client.MockRestServiceServer
@@ -63,6 +65,23 @@ class BoundTransport private constructor(
         }
     }
 }
+
+/** StoreFinder가 조립해 돌려주는 형태의 직연동 매장 — 파트너(행위)가 이미 resolve된 상태. */
+fun integratedStore(partner: DirectPosPartner, partnerStoreCode: String = "STORE-001") = Store(
+    id = 1L,
+    name = "직연동 테스트 매장",
+    partnerType = PartnerType.INTEGRATED_PARTNER,
+    directPosPartner = partner,
+    partnerStoreCode = StoreCode(partnerStoreCode),
+)
+
+fun karrotStore() = Store(
+    id = 2L,
+    name = "당근 자체 매장",
+    partnerType = PartnerType.KARROT,
+    directPosPartner = null,
+    partnerStoreCode = null,
+)
 
 fun propertiesFor(key: PartnerKey): DirectPosProperties = propertiesFor(listOf(key))
 

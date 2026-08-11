@@ -1,10 +1,9 @@
 package karrot.partnerpos.application
 
-import karrot.partnerpos.contract.DirectPosPartnerRegistry
-import karrot.partnerpos.contract.PartnerKey
 import karrot.partnerpos.contract.PosCommunicationException
-import karrot.partnerpos.contract.StoreCode
 import karrot.partnerpos.contract.StoreRegistrable
+import karrot.partnerpos.store.PartnerType
+import karrot.partnerpos.store.Store
 import org.springframework.stereotype.Service
 
 sealed interface ActivationResult {
@@ -21,27 +20,26 @@ sealed interface ActivationResult {
  * 미지원 파트너(롯데 — 수기 협의)는 즉시 활성화된다.
  */
 @Service
-class StoreActivationService(
-    private val registry: DirectPosPartnerRegistry,
-) {
-    fun activate(partnerKey: PartnerKey, storeCode: StoreCode): ActivationResult {
-        val partner = registry[partnerKey]
-
-        if (partner is StoreRegistrable) {
-            try {
-                partner.registerStore(storeCode)
-            } catch (e: PosCommunicationException) {
-                return ActivationResult.Failed(e)
+class StoreActivationService {
+    fun activate(store: Store): ActivationResult {
+        if (store.partnerType == PartnerType.INTEGRATED_PARTNER) {
+            val partner = store.directPosPartner()
+            if (partner is StoreRegistrable) {
+                try {
+                    partner.registerStore(store.partnerStoreCode())  // 파트너측 매장 코드로 등록
+                } catch (e: PosCommunicationException) {
+                    return ActivationResult.Failed(e)
+                }
             }
         }
 
-        markStoreActive(storeCode)
+        markStoreActive(store.id)
         return ActivationResult.Activated
     }
 
     /** stores.status = ACTIVE 저장 — 매장 도메인은 스코프 밖, 위치만 표시하는 의사코드. */
     @Suppress("UNUSED_PARAMETER")
-    private fun markStoreActive(storeCode: StoreCode) {
-        // pseudocode: storeRepository.updateStatus(storeCode, ACTIVE)
+    private fun markStoreActive(storeId: Long) {
+        // pseudocode: storeRepository.updateStatus(storeId, ACTIVE)
     }
 }

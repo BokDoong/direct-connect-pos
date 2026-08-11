@@ -1,13 +1,14 @@
 package karrot.partnerpos.application
 
 import karrot.partnerpos.RecordingPartner
-import karrot.partnerpos.contract.DirectPosPartnerRegistry
 import karrot.partnerpos.contract.MenuCode
 import karrot.partnerpos.contract.MenuStock
 import karrot.partnerpos.contract.PartnerKey
 import karrot.partnerpos.contract.PosCommunicationException
 import karrot.partnerpos.contract.StockQueryable
 import karrot.partnerpos.contract.StoreCode
+import karrot.partnerpos.integratedStore
+import karrot.partnerpos.karrotStore
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -25,28 +26,36 @@ class StockOverlayServiceTest {
         }
     }
 
-    private val stockless = RecordingPartner(key = PartnerKey("STOCKLESS_PARTNER"))
     private val stockPartner = StockPartner()
-    private val service = StockOverlayService(DirectPosPartnerRegistry(listOf(stockless, stockPartner)))
-
+    private val service = StockOverlayService()
     private val menuCodes = listOf(MenuCode("MENU-A"))
-    private val storeCode = StoreCode("STORE-001")
 
     @Test
-    @DisplayName("재고 미지원 파트너(StockQueryable 미구현)는 어느 단계든 DB 값을 쓴다")
-    fun stocklessPartnerFallsBackToDb() {
+    @DisplayName("직연동이 아닌 매장(KARROT 등)은 어느 단계든 DB 값을 쓴다")
+    fun nonIntegratedStoreFallsBackToDb() {
         PurchaseStage.entries.forEach { stage ->
-            val result = service.overlay(stockless.key, storeCode, menuCodes, stage)
+            val result = service.overlay(karrotStore(), menuCodes, stage)
             assertThat(result).isEqualTo(StockOverlayResult.FromDb)
         }
     }
 
     @Test
-    @DisplayName("재고 지원 파트너는 실시간 수량으로 오버레이한다")
+    @DisplayName("재고 미지원 파트너(StockQueryable 미구현)도 DB 값을 쓴다")
+    fun stocklessPartnerFallsBackToDb() {
+        val store = integratedStore(RecordingPartner(key = PartnerKey("STOCKLESS")))
+
+        PurchaseStage.entries.forEach { stage ->
+            val result = service.overlay(store, menuCodes, stage)
+            assertThat(result).isEqualTo(StockOverlayResult.FromDb)
+        }
+    }
+
+    @Test
+    @DisplayName("재고 지원 파트너는 파트너측 매장 코드로 조회해 실시간 수량을 오버레이한다")
     fun overlaysRealtimeStocks() {
         stockPartner.stocks = listOf(MenuStock(MenuCode("MENU-A"), 3))
 
-        val result = service.overlay(stockPartner.key, storeCode, menuCodes, PurchaseStage.MENU_VIEW)
+        val result = service.overlay(integratedStore(stockPartner), menuCodes, PurchaseStage.MENU_VIEW)
 
         assertThat(result).isEqualTo(StockOverlayResult.Overlaid(listOf(MenuStock(MenuCode("MENU-A"), 3))))
     }
@@ -57,7 +66,7 @@ class StockOverlayServiceTest {
         stockPartner.failOnFetch = true
 
         listOf(PurchaseStage.MENU_VIEW, PurchaseStage.MENU_DETAIL).forEach { stage ->
-            val result = service.overlay(stockPartner.key, storeCode, menuCodes, stage)
+            val result = service.overlay(integratedStore(stockPartner), menuCodes, stage)
             assertThat(result).isEqualTo(StockOverlayResult.FromDb)
         }
     }
@@ -68,7 +77,7 @@ class StockOverlayServiceTest {
         stockPartner.failOnFetch = true
 
         listOf(PurchaseStage.CART_ADD, PurchaseStage.ORDER_CREATE, PurchaseStage.PAYMENT).forEach { stage ->
-            val result = service.overlay(stockPartner.key, storeCode, menuCodes, stage)
+            val result = service.overlay(integratedStore(stockPartner), menuCodes, stage)
             assertThat(result).isEqualTo(StockOverlayResult.Blocked)
         }
     }
@@ -78,7 +87,7 @@ class StockOverlayServiceTest {
     fun cartViewClosesMenus() {
         stockPartner.failOnFetch = true
 
-        val result = service.overlay(stockPartner.key, storeCode, menuCodes, PurchaseStage.CART_VIEW)
+        val result = service.overlay(integratedStore(stockPartner), menuCodes, PurchaseStage.CART_VIEW)
 
         assertThat(result).isEqualTo(StockOverlayResult.MenusClosed(menuCodes))
     }

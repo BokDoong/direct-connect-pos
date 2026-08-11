@@ -1,12 +1,11 @@
 package karrot.partnerpos.application
 
-import karrot.partnerpos.contract.DirectPosPartnerRegistry
 import karrot.partnerpos.contract.MenuCode
 import karrot.partnerpos.contract.MenuStock
-import karrot.partnerpos.contract.PartnerKey
 import karrot.partnerpos.contract.PosCommunicationException
 import karrot.partnerpos.contract.StockQueryable
-import karrot.partnerpos.contract.StoreCode
+import karrot.partnerpos.store.PartnerType
+import karrot.partnerpos.store.Store
 import org.springframework.stereotype.Service
 
 /**
@@ -45,20 +44,18 @@ sealed interface StockOverlayResult {
  * `StockQueryable`을 구현하지 않은 파트너에는 fetchStocks가 존재하지 않는다.
  */
 @Service
-class StockOverlayService(
-    private val registry: DirectPosPartnerRegistry,
-) {
+class StockOverlayService {
     fun overlay(
-        partnerKey: PartnerKey,
-        storeCode: StoreCode,
+        store: Store,
         menuCodes: List<MenuCode>,
         stage: PurchaseStage,
     ): StockOverlayResult {
-        val partner = registry[partnerKey]
+        if (store.partnerType != PartnerType.INTEGRATED_PARTNER) return StockOverlayResult.FromDb
+        val partner = store.directPosPartner()
         if (partner !is StockQueryable) return StockOverlayResult.FromDb
 
         return try {
-            val stocks = partner.fetchStocks(storeCode, menuCodes)
+            val stocks = partner.fetchStocks(store.partnerStoreCode(), menuCodes)
             publishStockSnapshot(stocks)
             StockOverlayResult.Overlaid(stocks)
         } catch (e: PosCommunicationException) {
