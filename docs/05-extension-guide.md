@@ -12,7 +12,7 @@
 **추가하는 것: 구현 클래스 1파일 + yml 1블록 + partners row(정체성) 1건. 고치는 것: 없음.**
 
 ```kotlin
-// 1) partner/ShakeShackPartner.kt — 이 파일이 파트너의 전체 명세가 된다
+// 1) client/direct/ShakeShackPartner.kt — 이 파일이 파트너의 전체 명세가 된다
 @Component
 class ShakeShackPartner(
     private val transport: PosApiTransport,
@@ -55,7 +55,7 @@ INSERT INTO partners (name, partner_key, api_key, whitelist_ips) VALUES ('쉐이
 **추가하는 것: 인터페이스 1개 + 지원 파트너 구현 + 호출자 1곳. 고치는 것: 없음 (스키마 마이그레이션 0).**
 
 ```kotlin
-// 1) contract/ — 중립 계약 선언. "무엇이 변하는 축인지"를 이름으로 고정한다
+// 1) domain/partner/model/ — 중립 계약 선언. "무엇이 변하는 축인지"를 이름으로 고정한다
 interface StoreCodeVerifiable {
     fun verifyStoreCode(storeCode: StoreCode): StoreCodeVerification
 }
@@ -162,7 +162,7 @@ class OrderPlacementService(
 파트너별로 변하는 행동은 페이로드 조립 하나였고, 나머지 차이는 값(policy·path)과 타입(capability)이었다.
 그래서 골격 상속을 버리고 공통 부품(transport·조립기) 주입으로 전환했다. 결과:
 롯데 구현체는 부모 골격 없이도 12줄이고, 부품은 파트너와 독립적으로 테스트된다
-([`PosApiTransportTest`](../src/test/kotlin/karrot/partnerpos/transport/PosApiTransportTest.kt)).
+([`PosApiTransportTest`](../src/test/kotlin/karrot/partnerpos/client/transport/PosApiTransportTest.kt)).
 
 ### ④ "계약에 구현체 용어가 새지 않는가"
 

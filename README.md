@@ -17,19 +17,33 @@
 | 5 | [docs/05-extension-guide.md](docs/05-extension-guide.md) | 확장 가이드 — 시나리오별 추가 지점, 사용한 패턴, 무엇이 수월해졌는가 |
 | 6 | [docs/06-db-integration.md](docs/06-db-integration.md) | DB 연동 — 테이블별 운명, 코드↔DB 기동 대사, 트랜잭션 경계, 마이그레이션 경로 |
 
-## 코드 구조
+## 패키지 구조
 
 ```
 src/main/kotlin/karrot/partnerpos/
-├── contract/      파트너 계약 계층 — 중립 인터페이스 (DirectPosPartner, capability 2종, registry)
-├── partner/       파트너 구현 계층 — 파트너당 1파일 = 그 파트너의 전체 명세
-├── spec/          당근 공통 규격서의 코드화 (공통 페이로드)
-├── transport/     변하지 않는 전송 규약 1벌 (Bearer·타임아웃·재시도 4회·status 판정)
-├── application/   앱 계층 — 주문/재고/활성화 서비스 + 파트너 타입 분기 4종(Pos*)
-├── legacy/        레거시 클라이언트 경계 — 푸드테크·해피오더 (파트너 주도 규격, 스텁)
-├── store/         매장 조립 — Store 도메인 모델, StoreFinder(파트너 resolve 유일 지점), 기동 대사
-└── config/        환경 데이터·시크릿 바인딩 (yml) — 코드가 아닌 유일한 것
+├── domain/                도메인별로 나누고, 각 도메인 안을 model / application으로 구분
+│   ├── order/             주문 — model(PosOrder·OrderCode·PaymentMethod)
+│   │                      application(OrderPlacementService·OrderCancelPropagator,
+│   │                                  타입 분기 PosOrderSynchronizer·PosOrderWriter, PartnerOrderWriter)
+│   ├── menu/              메뉴·재고 — model(MenuCode·MenuStock)
+│   │                      application(StockOverlayService — soft/hard 정책, 타입 분기 PosStockFinder)
+│   ├── store/             매장 — model(Store·DirectPosContext·PartnerType·StoreCode)
+│   │                      application(StoreFinder — 파트너 resolve 유일 지점,
+│   │                                  StoreActivationService, 타입 분기 PosStoreRegistrar)
+│   └── partner/           파트너 — model(PartnerKey·DirectPosPartner 계약·capability 2종·PartnerPolicy)
+│                          application(DirectPosPartnerRegistry, PartnerRegistryReconciler 기동 대사)
+├── client/                외부 연동 구현
+│   ├── transport/         변하지 않는 전송 규약 1벌 (Bearer·3s/10s·재시도 4회·status 판정)
+│   ├── direct/            직연동 구현 3사(CJ·롯데·버거킹) + 공통 규격 페이로드 — 당근 주도 규격
+│   └── legacy/            푸드테크·해피오더 클라이언트 포트 — 파트너 주도 규격 (경계만 재현)
+├── infra/                 인메모리 리포지토리·레거시 스텁 — domain의 포트에 꽂히는 어댑터
+└── config/                환경 데이터·시크릿 바인딩(yml)·RestClient 구성 — 코드가 아닌 유일한 것
 ```
+
+**패키지 규칙**
+- `domain`은 포트(리포지토리 인터페이스)까지만 알고, 구현은 `infra`가 꽂는다 — DB 교체는 infra만 바뀐다
+- `*Finder`·`*Writer`·`*Registrar`·`*Synchronizer` 컴포넌트는 소속 도메인의 `application`에 둔다
+- 파트너 타입 분기(`Pos*`)와 직연동 전용(`Partner*`)의 접두사 구분은 패키지와 무관하게 유지된다
 
 ## 실행
 

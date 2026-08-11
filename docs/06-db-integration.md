@@ -194,5 +194,5 @@ POS 개폐점: 인바운드가 is_pos_open 갱신 (스코프 밖) — 운영상�
 | `PartnerStoreLinkRepository` | `partner_stores` | partner_id + partner_store_code |
 | `PartnerRecordRepository` | `partners` | 조립 시 id→key 번역(A안·D8) + 기동 대사 `findAllKeys()` |
 
-파트너 계층(`partner/`)과 계약(`contract/`)은 **한 줄도 바뀌지 않는다** — DB는 애플리케이션 계층
+파트너 구현(`client/direct/`)과 계약(`domain/partner/model/`)은 **한 줄도 바뀌지 않는다** — DB는 애플리케이션 계층
 바깥의 세부사항이라는 것이 이 구조의 검증 포인트다.

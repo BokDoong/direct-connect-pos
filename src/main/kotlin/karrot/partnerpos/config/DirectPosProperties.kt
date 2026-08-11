@@ -1,7 +1,7 @@
 package karrot.partnerpos.config
 
-import karrot.partnerpos.contract.PartnerKey
-import karrot.partnerpos.transport.PosEndpoint
+import karrot.partnerpos.domain.partner.model.PartnerKey
+import karrot.partnerpos.client.transport.PosEndpoint
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 /**

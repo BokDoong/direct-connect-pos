@@ -1,6 +1,6 @@
 package karrot.partnerpos.config
 
-import karrot.partnerpos.transport.PosApiTransport
+import karrot.partnerpos.client.transport.PosApiTransport
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.client.SimpleClientHttpRequestFactory

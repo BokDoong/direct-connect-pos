@@ -1,37 +1,37 @@
 package karrot.partnerpos
 
-import karrot.partnerpos.application.ActivationResult
-import karrot.partnerpos.application.InMemoryPartnerOrderMappingRepository
-import karrot.partnerpos.application.OrderPlacementService
-import karrot.partnerpos.application.PartnerOrderWriter
-import karrot.partnerpos.application.PosOrderSynchronizer
-import karrot.partnerpos.application.PosOrderWriter
-import karrot.partnerpos.application.PosStockFinder
-import karrot.partnerpos.application.PosStoreRegistrar
-import karrot.partnerpos.application.PurchaseStage
-import karrot.partnerpos.application.StockOverlayService
-import karrot.partnerpos.application.StockOverlayResult
-import karrot.partnerpos.application.StoreActivationService
-import karrot.partnerpos.contract.DirectPosPartner
-import karrot.partnerpos.contract.DirectPosPartnerRegistry
-import karrot.partnerpos.contract.MenuCode
-import karrot.partnerpos.contract.MenuStock
-import karrot.partnerpos.contract.OrderCode
-import karrot.partnerpos.contract.PartnerKey
-import karrot.partnerpos.contract.PartnerPolicy
-import karrot.partnerpos.contract.Order
-import karrot.partnerpos.contract.StockQueryable
-import karrot.partnerpos.contract.StoreCode
-import karrot.partnerpos.contract.StoreRegistrable
-import karrot.partnerpos.store.PartnerRecordRepository
-import karrot.partnerpos.store.PartnerRecord
-import karrot.partnerpos.store.PartnerRegistryReconciler
-import karrot.partnerpos.store.PartnerStoreLink
-import karrot.partnerpos.store.PartnerType
-import karrot.partnerpos.store.InMemoryPartnerStoreLinkRepository
-import karrot.partnerpos.store.InMemoryStoreRecordRepository
-import karrot.partnerpos.store.StoreFinder
-import karrot.partnerpos.store.StoreRecord
+import karrot.partnerpos.domain.store.application.ActivationResult
+import karrot.partnerpos.infra.InMemoryPartnerOrderMappingRepository
+import karrot.partnerpos.domain.order.application.OrderPlacementService
+import karrot.partnerpos.domain.order.application.PartnerOrderWriter
+import karrot.partnerpos.domain.order.application.PosOrderSynchronizer
+import karrot.partnerpos.domain.order.application.PosOrderWriter
+import karrot.partnerpos.domain.menu.application.PosStockFinder
+import karrot.partnerpos.domain.store.application.PosStoreRegistrar
+import karrot.partnerpos.domain.menu.application.PurchaseStage
+import karrot.partnerpos.domain.menu.application.StockOverlayService
+import karrot.partnerpos.domain.menu.application.StockOverlayResult
+import karrot.partnerpos.domain.store.application.StoreActivationService
+import karrot.partnerpos.domain.partner.model.DirectPosPartner
+import karrot.partnerpos.domain.partner.application.DirectPosPartnerRegistry
+import karrot.partnerpos.domain.menu.model.MenuCode
+import karrot.partnerpos.domain.menu.model.MenuStock
+import karrot.partnerpos.domain.order.model.OrderCode
+import karrot.partnerpos.domain.partner.model.PartnerKey
+import karrot.partnerpos.domain.partner.model.PartnerPolicy
+import karrot.partnerpos.domain.order.model.PosOrder
+import karrot.partnerpos.domain.partner.model.StockQueryable
+import karrot.partnerpos.domain.store.model.StoreCode
+import karrot.partnerpos.domain.partner.model.StoreRegistrable
+import karrot.partnerpos.domain.partner.application.PartnerRecordRepository
+import karrot.partnerpos.domain.partner.application.PartnerRecord
+import karrot.partnerpos.domain.partner.application.PartnerRegistryReconciler
+import karrot.partnerpos.domain.store.application.PartnerStoreLink
+import karrot.partnerpos.domain.store.model.PartnerType
+import karrot.partnerpos.infra.InMemoryPartnerStoreLinkRepository
+import karrot.partnerpos.infra.InMemoryStoreRecordRepository
+import karrot.partnerpos.domain.store.application.StoreFinder
+import karrot.partnerpos.domain.store.application.StoreRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -54,10 +54,10 @@ class NewPartnerExtensionTest {
         override val key = PartnerKey("SUBWAY")
         override val policy = PartnerPolicy(unacceptedAutoCancel = 480.seconds)
 
-        val registeredOrders = mutableListOf<Order>()
+        val registeredOrders = mutableListOf<PosOrder>()
         val registeredStores = mutableListOf<StoreCode>()
 
-        override fun registerOrder(order: Order) {
+        override fun registerOrder(order: PosOrder) {
             registeredOrders += order
         }
 

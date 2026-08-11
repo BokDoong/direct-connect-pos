@@ -322,11 +322,12 @@ sequenceDiagram
 
 | 설계 (이 문서) | 코드 위치 |
 |---|---|
-| 파트너 계약 계층 | `src/main/kotlin/karrot/partnerpos/contract/` — PartnerKey, Model, DirectPosPartner(+capability+policy), DirectPosPartnerRegistry |
-| 공통 부품 | `transport/PosApiTransport.kt`, `spec/CommonPayloads.kt`, `config/` (Properties·RestClient 구성) |
-| 파트너 구현 계층 | `partner/CjPartner.kt` · `LottePartner.kt` · `BurgerKingPartner.kt` |
-| 애플리케이션 계층 | `application/` — OrderPlacementService, OrderCancelPropagator, StockOverlayService, StoreActivationService, PartnerOrderWriter(D9), 타입 분기 4종(PosOrderSynchronizer·PosOrderWriter·PosStockFinder·PosStoreRegistrar, D10·D11) |
-| 레거시 클라이언트 경계 | `legacy/` — FoodTechClient·HappyOrderClient 포트 + 스텁 (파트너 주도 규격 — 재설계 스코프 밖, 경계만 재현) |
-| 매장 조립 (docs/06 §3) | `store/` — Store(도메인 모델), StoreFinder, PartnerRegistryReconciler(기동 대사), 인메모리 어댑터 |
+| 파트너 계약 계층 | `domain/partner/model/` — PartnerKey, DirectPosPartner(+capability+policy) / `domain/partner/application/` — DirectPosPartnerRegistry, PartnerRegistryReconciler(기동 대사), partners 포트 |
+| 공통 부품 | `client/transport/PosApiTransport.kt`, `client/direct/CommonPayloads.kt`, `config/` (Properties·RestClient 구성) |
+| 파트너 구현 계층 | `client/direct/` — CjPartner · LottePartner · BurgerKingPartner |
+| 애플리케이션 계층 | `domain/{order,menu,store}/application/` — 서비스 4종 + PartnerOrderWriter(D9) + 타입 분기 4종(PosOrderSynchronizer·PosOrderWriter·PosStockFinder·PosStoreRegistrar, D10·D11) |
+| 레거시 클라이언트 경계 | `client/legacy/` — FoodTechClient·HappyOrderClient 포트 (스텁은 `infra/`) |
+| 매장 조립 (docs/06 §3) | `domain/store/model/` — Store·DirectPosContext / `domain/store/application/` — StoreFinder + 리포지토리 포트 |
+| 인메모리 어댑터 | `infra/` — 리포지토리 4종 + 레거시 스텁 (domain의 포트에 꽂힘) |
 | 환경 데이터·시크릿 | `resources/application.yml` (`partner-pos.endpoints`) |
-| §8 테스트 전략 | `src/test/kotlin/karrot/partnerpos/` — 전송 규약(transport/), 파트너 계약(partner/), 플로우(application/), 확장 데모(NewPartnerExtensionTest) |
+| §8 테스트 전략 | `src/test/kotlin/karrot/partnerpos/` — 전송 규약(client/transport/), 파트너 계약(client/direct/), 플로우(domain/*/application/), 분기(PosDispatchTest), 확장 데모(NewPartnerExtensionTest) |
