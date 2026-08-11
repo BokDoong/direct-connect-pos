@@ -12,7 +12,8 @@
 
 | 컬럼 | AS-IS 역할 | TO-BE |
 |---|---|---|
-| `name` (ux) | URL path 검증, 파트너 식별 | **유지** — 코드의 `PartnerKey.name`과 1:1 매핑되는 유일한 접점 |
+| `name` (ux) | URL path 검증, 파트너 식별 | **유지** — 표시·인바운드 URL 검증 용도로 한정. dispatch 식별자 역할은 신설 `partner_key`로 이관 |
+| `partner_key` (신설, ux) | — | **추가** (03 결정 D8) — 코드 `PartnerKey`와 1:1 매핑되는 **안정 식별자**. name(변경 가능)과 분리해 이름 변경이 dispatch를 깨지 않게 한다. TO-BE의 유일한 스키마 추가 |
 | `api_key`, `whitelist_ips` | 인바운드 토큰 발급 인증 | **유지** — 인바운드 인증은 환경·운영 데이터 (재설계 스코프 밖) |
 | `base_url` | 아웃바운드 대상 | **제거** → yml (`partner-pos.endpoints`) |
 | `auth_key` (평문 TODO) | 아웃바운드 Bearer | **제거** → 환경변수/시크릿 스토어 (P7 해소) |
@@ -33,7 +34,7 @@
 | `orders.order_code` (16자 uk) | 파트너 왕복의 주문 식별자 채번 원장 |
 | `partner_tokens` | 인바운드 토큰 (스코프 밖) |
 
-## 2. 코드 ↔ DB의 유일한 접점: PartnerKey ↔ partners.name
+## 2. 코드 ↔ DB의 유일한 접점: PartnerKey ↔ partners.partner_key
 
 AS-IS에서 URL path와 `name` 컬럼을 문자열 비교하던 그 지점이, TO-BE에서는 **기동 시 대사(reconciliation)** 로 옮겨간다:
 
@@ -44,11 +45,11 @@ class PartnerRegistryReconciler(
     private val partnerRepository: PartnerRepository,   // partners 테이블
 ) : ApplicationRunner {
     override fun run(args: ApplicationArguments) {
-        val dbNames = partnerRepository.findAllNames().toSet()          // DB의 정체성
-        val codeNames = registry.keys.map { it.name }.toSet()           // 코드의 구현체
+        val dbKeys = partnerRepository.findAllKeys().toSet()            // DB의 정체성 (partner_key)
+        val codeKeys = registry.keys.map { it.name }.toSet()            // 코드의 구현체
 
-        val notImplemented = dbNames - codeNames   // row는 있는데 구현이 없다 → 주문이 터질 파트너
-        val notRegistered = codeNames - dbNames    // 구현은 있는데 row가 없다 → FK 걸 수 없는 파트너
+        val notImplemented = dbKeys - codeKeys     // row는 있는데 구현이 없다 → 주문이 터질 파트너
+        val notRegistered = codeKeys - dbKeys      // 구현은 있는데 row가 없다 → FK 걸 수 없는 파트너
         check(notImplemented.isEmpty() && notRegistered.isEmpty()) {
             "partner code-DB drift: missing impl=$notImplemented, missing row=$notRegistered"
         }
@@ -62,7 +63,7 @@ class PartnerRegistryReconciler(
 
 ### 2-1. 이 동기화 비용의 정체 — 분산 enum
 
-파트너 키가 DB(`partners.name`)와 코드(`PartnerKey` 선언) 두 곳에 정의되는 것은 **분산 enum**이며,
+파트너 키가 DB(`partners.partner_key`)와 코드(`PartnerKey` 선언) 두 곳에 정의되는 것은 **분산 enum**이며,
 행동을 코드로 올리고 정체성을 DB에 남긴 하이브리드 설계의 **필연적 이음새**다 (우발적 복잡성이 아님).
 없애는 방법은 전부 DB로(AS-IS 회귀) 또는 전부 코드로(FK·매장별 운영 데이터 상실) 뿐이라 둘 다 기각.
 결제수단 코드↔핸들러처럼 "코드 테이블 + 전략 레지스트리"를 쓰는 시스템의 표준 이음새이고, 3중 방어가 있다:
@@ -77,7 +78,7 @@ class PartnerRegistryReconciler(
 
 | 시점 | 무엇을 읽나 | 빈도 |
 |---|---|---|
-| 매장 조립 (StoreFinder, §3) | `partner_stores.partner_id` → `partners.name` — id→키 번역 | 매장 조회마다 (작은 불변 테이블이라 조인/캐시 비용 무시 가능) |
+| 매장 조립 (StoreFinder, §3) | `partner_stores.partner_id` → `partners.partner_key` — id→키 번역 | 매장 조회마다 (작은 불변 테이블이라 조인/캐시 비용 무시 가능) |
 | 인바운드 인증 (스코프 밖) | `api_key`·`whitelist_ips` 검증, URL `{partnerType}`↔`name` 대조 | 토큰 발급/검증마다 — **실질적으로 가장 일하는 곳** |
 | 기동 대사 (§2) | `findAllNames()` | 배포마다 1회 |
 
@@ -92,8 +93,8 @@ class PartnerRegistryReconciler(
 StoreFinder.find(storeId)
   ├ stores 조회 → partnerType
   ├ (INTEGRATED_PARTNER면) partner_stores 조회 → partner_id + partner_store_code
-  ├ partners 조회 → name (A안: id→name 번역)
-  └ registry[PartnerKey(name)] → Store(partnerType, directPosPartner, partnerStoreCode)
+  ├ partners 조회 → partner_key (A안: id→key 번역, D8)
+  └ registry[PartnerKey(partner_key)] → Store(partnerType, directPosPartner, partnerStoreCode)
                                   ↑ 데이터(key)가 행위(전략)로 번역되는 유일한 지점
 ```
 
@@ -169,7 +170,8 @@ POS 개폐점: 인바운드가 is_pos_open 갱신 (스코프 밖) — 운영상�
 
 ## 5. 마이그레이션 경로 — 컬럼을 어떻게 안전하게 죽이나
 
-운영 중인 시스템이라면 partners 컬럼 제거는 3단계:
+신설은 `partner_key` 컬럼 하나(추가 + 백필 + ux — 안전한 additive 변경)이고,
+제거가 문제다. 운영 중인 시스템이라면 partners 컬럼 제거는 3단계:
 
 1. **이중 읽기 검증**: 코드값(policy·capability)을 사용하되, 기존 컬럼값과 비교해 불일치를 로깅.
    배포 후 한동안 "코드가 DB를 정확히 흡수했는가"를 데이터로 증명한다.
@@ -188,7 +190,7 @@ POS 개폐점: 인바운드가 is_pos_open 갱신 (스코프 밖) — 운영상�
 | `PartnerOrderMappingRepository` | `partner_orders` | `save`의 중복 검사를 uk 제약 + `DataIntegrityViolationException` 해석으로 교체 |
 | `StoreRecordRepository` | `stores` | StoreFinder 조립의 시작점 |
 | `PartnerStoreLinkRepository` | `partner_stores` | partner_id + partner_store_code |
-| `PartnerRecordRepository` | `partners` | 조립 시 id→name 번역(A안) + 기동 대사 `findAllNames()` |
+| `PartnerRecordRepository` | `partners` | 조립 시 id→key 번역(A안·D8) + 기동 대사 `findAllKeys()` |
 
 파트너 계층(`partner/`)과 계약(`contract/`)은 **한 줄도 바뀌지 않는다** — DB는 애플리케이션 계층
 바깥의 세부사항이라는 것이 이 구조의 검증 포인트다.

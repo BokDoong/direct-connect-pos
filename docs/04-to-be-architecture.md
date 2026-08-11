@@ -298,7 +298,7 @@ sequenceDiagram
 | 파트너 계약 계층 | `src/main/kotlin/karrot/partnerpos/contract/` — PartnerKey, Model, DirectPosPartner(+capability+policy), DirectPosPartnerRegistry |
 | 공통 부품 | `transport/PosApiTransport.kt`, `spec/CommonPayloads.kt`, `config/` (Properties·RestClient 구성) |
 | 파트너 구현 계층 | `partner/CjPartner.kt` · `LottePartner.kt` · `BurgerKingPartner.kt` |
-| 애플리케이션 계층 | `application/` — OrderPlacementService, OrderCancelPropagator, StockOverlayService, StoreActivationService |
+| 애플리케이션 계층 | `application/` — OrderPlacementService, OrderCancelPropagator, StockOverlayService, StoreActivationService, PartnerOrderWriter(서비스→Writer→Repository 계층, D9) |
 | 매장 조립 (docs/06 §3) | `store/` — Store(도메인 모델), StoreFinder, PartnerRegistryReconciler(기동 대사), 인메모리 어댑터 |
 | 환경 데이터·시크릿 | `resources/application.yml` (`partner-pos.endpoints`) |
 | §8 테스트 전략 | `src/test/kotlin/karrot/partnerpos/` — 전송 규약(transport/), 파트너 계약(partner/), 플로우(application/), 확장 데모(NewPartnerExtensionTest) |
