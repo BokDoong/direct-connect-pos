@@ -42,7 +42,7 @@ class PartnerPosDispatchTest {
 
     @Nested
     inner class OrderSynchronizer {
-        private val synchronizer = PartnerPosOrderSynchronizer(foodTech, happyOrder)
+        private val synchronizer = PosOrderSynchronizer(foodTech, happyOrder)
 
         @Test
         @DisplayName("직연동 매장은 조립된 DirectPosPartner로 등록/취소가 나간다")
@@ -78,6 +78,31 @@ class PartnerPosDispatchTest {
 
             assertThat(foodTech.registeredOrders).isEmpty()
             assertThat(happyOrder.registeredOrders).isEmpty()
+        }
+    }
+
+    @Nested
+    inner class OrderWriter {
+        private val savedMappings = mutableMapOf<OrderCode, PartnerKey>()
+        private val writer = PosOrderWriter(
+            PartnerOrderWriter(object : PartnerOrderMappingRepository {
+                override fun save(orderCode: OrderCode, partnerKey: PartnerKey) {
+                    savedMappings[orderCode] = partnerKey
+                }
+            }),
+        )
+
+        @Test
+        @DisplayName("직연동 매장만 partner_orders 매핑에 저장된다 — 레거시 매핑은 각자 경로 소관")
+        fun onlyIntegratedWritesMapping() {
+            val orderCode = OrderCode("2608110000ABCD")
+
+            writer.write(integratedStore(RecordingPartner(key = PartnerKey("DIRECT"))), orderCode)
+            writer.write(foodTechStore(), orderCode)
+            writer.write(happyOrderStore(), orderCode)
+            writer.write(karrotStore(), orderCode)
+
+            assertThat(savedMappings).containsExactlyEntriesOf(mapOf(orderCode to PartnerKey("DIRECT")))
         }
     }
 

@@ -20,8 +20,8 @@ class OrderPlacementServiceTest {
 
     private fun serviceWith(repository: PartnerOrderMappingRepository) =
         OrderPlacementService(
-            PartnerOrderWriter(repository),
-            PartnerPosOrderSynchronizer(RecordingFoodTechClient(), RecordingHappyOrderClient()),
+            PosOrderWriter(PartnerOrderWriter(repository)),
+            PosOrderSynchronizer(RecordingFoodTechClient(), RecordingHappyOrderClient()),
         )
 
     @Test

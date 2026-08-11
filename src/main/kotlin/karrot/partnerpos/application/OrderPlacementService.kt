@@ -14,11 +14,11 @@ import kotlin.time.Duration.Companion.seconds
  * 고객 동기 경로다 — AS-IS와 동일하게 파트너 등록 완료까지가 주문 완료의 조건.
  *
  * 파트너 결정은 이 서비스의 관심사가 아니다 — StoreFinder가 조립한 [Store]가 맥락을 물고 오고,
- * 타입별 아웃바운드 분기는 [PosOrderSynchronizer]가, 저장은 [PartnerOrderWriter]가 맡는다.
+ * 타입별 아웃바운드 분기는 [PosOrderSynchronizer]가, 타입별 매핑 저장은 [PosOrderWriter]가 맡는다.
  */
 @Service
 class OrderPlacementService(
-    private val partnerOrderWriter: PartnerOrderWriter,
+    private val posOrderWriter: PosOrderWriter,
     private val posOrderSynchronizer: PosOrderSynchronizer,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -32,9 +32,7 @@ class OrderPlacementService(
         }
 
         try {
-            // 직연동 매핑(partner_orders)만 이 경로 소관 — 푸드테크/해피오더 매핑
-            // (foodtech_orders·happyorder_orders)은 레거시 경로 소관이라 여기서 다루지 않는다.
-            store.directPos?.let { partnerOrderWriter.write(order.orderCode, it.partner.key) }
+            posOrderWriter.write(store, order.orderCode)  // 타입별 매핑 원장 저장 분기는 Writer 소관
         } catch (e: Exception) {
             // 유령주문 방지: 파트너에는 등록됐는데 당근에 기록이 없는 상태를 즉시 해소한다.
             // 취소 전파 자체가 실패해도 원인 예외를 삼키지 않는다 (best-effort + 로깅).

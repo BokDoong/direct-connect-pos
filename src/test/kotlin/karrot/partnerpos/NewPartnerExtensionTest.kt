@@ -4,7 +4,8 @@ import karrot.partnerpos.application.ActivationResult
 import karrot.partnerpos.application.InMemoryPartnerOrderMappingRepository
 import karrot.partnerpos.application.OrderPlacementService
 import karrot.partnerpos.application.PartnerOrderWriter
-import karrot.partnerpos.application.PartnerPosOrderSynchronizer
+import karrot.partnerpos.application.PosOrderSynchronizer
+import karrot.partnerpos.application.PosOrderWriter
 import karrot.partnerpos.application.PartnerPosStockFinder
 import karrot.partnerpos.application.PartnerPosStoreRegistrar
 import karrot.partnerpos.application.PurchaseStage
@@ -107,8 +108,8 @@ class NewPartnerExtensionTest {
         // 주문 등록 — OrderPlacementService는 SUBWAY의 존재를 모른 채 동작한다
         val order = sampleOrder()
         OrderPlacementService(
-            PartnerOrderWriter(InMemoryPartnerOrderMappingRepository()),
-            PartnerPosOrderSynchronizer(foodTech, happyOrder),
+            PosOrderWriter(PartnerOrderWriter(InMemoryPartnerOrderMappingRepository())),
+            PosOrderSynchronizer(foodTech, happyOrder),
         ).place(store, order)
         assertThat(subway.registeredOrders).containsExactly(order)
 
