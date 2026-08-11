@@ -34,7 +34,7 @@ src/main/kotlin/karrot/partnerpos/
 ## 실행
 
 ```bash
-./gradlew test   # 전송 규약·파트너 계약·플로우·확장 데모 27개 테스트
+./gradlew test   # 전송 규약·파트너 계약·플로우·확장 데모 47개 테스트
 ```
 
 핵심 테스트: [`NewPartnerExtensionTest`](src/test/kotlin/karrot/partnerpos/NewPartnerExtensionTest.kt)

@@ -35,6 +35,18 @@ flowchart TB
         SF["StoreFinder<br/>entity → Store 도메인 조립<br/>파트너 resolve 유일 지점 (D6)"]
     end
 
+    subgraph dispatch["파트너 타입 분기 — exhaustive when (D10·D11)"]
+        SYNC["PosOrderSynchronizer<br/>주문 등록·취소"]
+        POW["PosOrderWriter<br/>매핑 저장"]
+        PSF["PosStockFinder<br/>재고 Pull"]
+        PSR["PosStoreRegistrar<br/>매장 등록·해지"]
+    end
+
+    subgraph legacyL["레거시 클라이언트 — 파트너 주도 규격 (스코프 밖, 경계만)"]
+        FT["FoodTechClient"]
+        HO["HappyOrderClient"]
+    end
+
     subgraph contract["파트너 계약 계층 — 중립 인터페이스 (파트너 용어 금지)"]
         REG["DirectPosPartnerRegistry<br/>Map«PartnerKey, DirectPosPartner»<br/>중복 키 기동 시 검증"]
         DPP["«interface» DirectPosPartner<br/>key · policy<br/>registerOrder(order)<br/>cancelOrder(orderCode)"]
@@ -56,10 +68,19 @@ flowchart TB
     end
 
     OPS -. 조립된 Store 소비 .-> SF
-    OCP -. 조립된 Store 소비 .-> SF
-    SOS -. 조립된 Store 소비 .-> SF
-    SAS -. 조립된 Store 소비 .-> SF
     SF --> REG
+    OPS --> SYNC
+    OPS --> POW
+    OCP --> SYNC
+    SOS --> PSF
+    SAS --> PSR
+    SYNC -->|INTEGRATED| DPP
+    PSF -->|INTEGRATED| DPP
+    PSR -->|INTEGRATED| DPP
+    SYNC -->|FOODTECH·HAPPYORDER| FT
+    SYNC --> HO
+    PSF -->|HAPPYORDER| HO
+    PSR -->|FOODTECH| FT
     REG --> DPP
     DPP --- PP
     CJ -.implements.-> DPP
@@ -177,7 +198,7 @@ class BurgerKingPartner(
 
 | 상황 | 수단 | 이 설계에서 |
 |---|---|---|
-| **1개를 골라 실행** (keyed dispatch) | `Map<K, T>` | 파트너 선택 — key가 enum으로 닫혀 있고 1:1이므로 registry가 `associateBy`로 색인. `List + supports()` 순회보다 의도가 명확 |
+| **1개를 골라 실행** (keyed dispatch) | `Map<K, T>` | 파트너 선택 — 키와 구현이 1:1이므로 registry가 `associateBy`로 색인. `List + supports()` 순회보다 의도가 명확 |
 | **N개를 모두 실행** (병렬 규칙) | `List<T>` | 현재 축 없음. 향후 주문 등록 전 검증 규칙(매장코드 검증 등)이 생기면 `List<Validator<PosOrder>>`로 — 계약만 선언하면 서비스 수정 없이 규칙 추가 |
 | capability 분기 (지원 여부) | 인터페이스 구현 + `is` | Map/List 이전의 문제 — "이 파트너가 이 행위를 하는가"는 컬렉션이 아니라 타입의 문제 |
 
@@ -189,21 +210,20 @@ class BurgerKingPartner(
 sequenceDiagram
     participant D as 도메인·결제완료
     participant OPS as OrderPlacementService
-    participant REG as Registry
+    participant SYNC as PosOrderSynchronizer
     participant P as DirectPosPartner 구현체
     participant TR as PosApiTransport
     participant POS as 파트너 서버
 
-    D->>OPS: place(order) — order_code 16자 채번 완료 상태
-    OPS->>REG: get(store.partnerKey)
-    REG-->>OPS: partner
-    OPS->>P: registerOrder(order)
+    D->>OPS: place(store, order) — store는 StoreFinder가 조립, 파트너 resolve 완료
+    OPS->>SYNC: registerOrder(store, order)
+    SYNC->>P: 직연동은 전략 호출 — FOODTECH·HAPPYORDER는 레거시 클라이언트, KARROT은 no-op
     P->>P: 페이로드 조립 — 공통 or 파트너 확장
     P->>TR: post(endpoint, path, payload)
     TR->>POS: HTTP — Bearer, 3s/10s, 재시도 최대 4회. order_code 멱등 계약이 안전 근거
     POS-->>TR: 2xx — body 미활용
     TR-->>OPS: 정상 반환
-    Note over OPS: 이후: 매핑 저장 실패 → cancelOrder 전파 (유령주문 방지)<br/>자동취소 예약 delay = partner.policy.unacceptedAutoCancel<br/>— 의사코드 fun으로만 표기 (Q2 결정)
+    Note over OPS: 이후: PosOrderWriter 매핑 저장 — 실패 시 취소 전파 (유령주문 방지)<br/>자동취소 예약 delay = 직연동은 policy 코드값, KARROT 3분, 레거시 10분
     Note over OPS: 최종 실패(예외) → 결제 자동 취소 보상 — 의사코드
 ```
 
@@ -213,13 +233,16 @@ sequenceDiagram
 sequenceDiagram
     participant C as 고객 요청 6개 지점
     participant SOS as StockOverlayService
+    participant PSF as PosStockFinder
     participant P as partner 구현체
 
     C->>SOS: overlay(store, menuCodes, stage)
-    alt StockQueryable 아님 — 롯데·버거킹
+    SOS->>PSF: findStocks(store, menuCodes)
+    alt Pull 미지원 — 롯데·버거킹·푸드테크·KARROT
+        PSF-->>SOS: null
         SOS-->>C: DB 재고값 그대로
-    else StockQueryable — CJ
-        SOS->>P: fetchStocks(storeCode, menuCodes)
+    else Pull 지원 — CJ는 capability, 해피오더는 레거시 클라이언트
+        PSF->>P: fetchStocks
         alt 성공
             P-->>SOS: MenuStock 리스트 — 메뉴코드+수량
             SOS-->>C: 수량 반영 — DB 반영은 비동기, 호출자 소관
@@ -235,17 +258,19 @@ sequenceDiagram
 sequenceDiagram
     participant A as 어드민
     participant SAS as StoreActivationService
+    participant PSR as PosStoreRegistrar
     participant P as partner
 
     A->>SAS: activate(store)
-    alt StoreRegistrable — CJ·버거킹
-        SAS->>P: registerStore(storeCode)
+    SAS->>PSR: registerStore(store)
+    alt 등록 필요 — CJ·버거킹은 capability, 푸드테크는 레거시 클라이언트
+        PSR->>P: registerStore — 파트너측 매장 코드
         alt 등록 성공
             SAS-->>A: 활성화 완료
         else 등록 실패
             SAS-->>A: 활성화 실패 — hard 의존, AS-IS 동일
         end
-    else 미지원 — 롯데, 수기 협의
+    else 미지원 — 롯데·해피오더 수기 협의, KARROT 외부 없음
         SAS-->>A: 즉시 활성화
     end
 ```
@@ -256,7 +281,7 @@ sequenceDiagram
 
 | 시나리오 | 추가하는 것 | 고치지 않는 것 | 해소하는 문제 |
 |---|---|---|---|
-| **① 새 파트너 추가** (제4의 직연동사) | 구현 클래스 1파일 + yml endpoint 1블록 + PartnerKey enum 1값 | 앱 계층 4개 서비스, 계약, 공통 부품, 기존 파트너 전부 | P4 (전모가 파일 1개) |
+| **① 새 파트너 추가** (제4의 직연동사) | 구현 클래스 1파일 + yml endpoint 1블록 + partners row(정체성) 1건 — 누락은 기동 대사가 잡음 | 앱 계층 서비스, 계약, 공통 부품, 기존 파트너 전부 (PartnerKey는 value class라 공유 enum 수정도 없음) | P4 (전모가 파일 1개) |
 | **② 새 API 추가** (매장 코드 검증 — 실제 논의됐던 것) | capability 인터페이스 1개(`StoreCodeVerifiable`) + 지원 파트너에 구현 + 호출자 1곳 | **DB 스키마 (마이그레이션 0), 비지원 파트너, 기존 계약** | **P1 (기능 축 확장)** — AS-IS의 5단계 수술이 코드 추가만으로 |
 | **③ 페이로드 확장** (버거킹 결제수단) | 파트너 전용 DTO + 구현체의 조립 코드 | 공통 규격 DTO, 타 파트너, 앱 계층 | P2 (임계점 해소) |
 
@@ -283,7 +308,8 @@ sequenceDiagram
 
 ## 9. 구현 스코프 표기
 
-- **동작 코드**: 계약 계층 전체, 파트너 구현 3종, 공통 부품, 앱 계층 4개 서비스의 아웃바운드 상호작용
+- **동작 코드**: 계약 계층 전체, 파트너 구현 3종, 공통 부품, 앱 계층 서비스와 타입 분기 4종(Pos*),
+  매장 조립(Store·StoreFinder·기동 대사), 레거시 클라이언트 경계
   (**유령주문 방지 보상 취소 전파 포함** — 파트너 계층의 아웃바운드 행위이므로), §8 테스트.
 - **의사코드 / 동작하지 않는 fun** (Q2 결정): 결제 보상 취소(당근페이), SQS 자동취소 예약,
   재고 비동기 DB 반영, 24h 자동완료 — 시그니처와 주석으로 위치만 표시.

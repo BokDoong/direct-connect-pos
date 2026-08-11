@@ -149,8 +149,8 @@ sequenceDiagram
     participant DB as MySQL
 
     C->>SOS: overlay(...)
-    Note over SOS: is StockQueryable 검사 — supports_stock SELECT 없음
-    SOS->>P: fetchStocks (HTTP, DB 무관)
+    Note over SOS: PosStockFinder가 타입·capability 분기 — supports_stock SELECT 없음
+    SOS->>P: PosStockFinder 경유 fetchStocks (HTTP, DB 무관)
     P-->>SOS: 수량 리스트
     SOS-->>C: 응답에 즉시 오버레이 (동기)
     SOS--)DB: 비동기 이벤트 → 재고 스냅샷 UPDATE (고객 노출·soft-fallback용)

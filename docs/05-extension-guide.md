@@ -9,7 +9,7 @@
 
 ### A. 새 직연동 파트너 추가
 
-**추가하는 것: 구현 클래스 1파일 + yml 1블록. 고치는 것: 없음.**
+**추가하는 것: 구현 클래스 1파일 + yml 1블록 + partners row(정체성) 1건. 고치는 것: 없음.**
 
 ```kotlin
 // 1) partner/ShakeShackPartner.kt — 이 파일이 파트너의 전체 명세가 된다
@@ -39,10 +39,16 @@ partner-pos:
       auth-key: ${SHAKE_SHACK_AUTH_KEY}
 ```
 
-컴포넌트 스캔 → `List<DirectPosPartner>` 주입 → registry 자동 등록. 앱 계층 4개 서비스,
-기존 파트너, 계약 인터페이스는 커밋에 등장하지 않는다.
+```sql
+-- 3) partners row — 정체성만 (docs/06 §1). 누락하면 기동 대사가 배포 시점에 잡는다
+INSERT INTO partners (name, partner_key, api_key, whitelist_ips) VALUES ('쉐이크쉑', 'SHAKE_SHACK', ...);
+```
+
+컴포넌트 스캔 → `List<DirectPosPartner>` 주입 → registry 자동 등록. 앱 계층 서비스,
+기존 파트너, 계약 인터페이스는 커밋에 등장하지 않는다 — `PartnerKey`가 value class(열린 집합)라
+공유 enum 수정도 없다.
 증명: [`NewPartnerExtensionTest`](../src/test/kotlin/karrot/partnerpos/NewPartnerExtensionTest.kt) —
-테스트 소스에만 존재하는 파트너가 메인 코드 수정 0줄로 전체 플로우에 참여한다.
+테스트 소스에만 존재하는 파트너가 메인 코드 수정 0줄로 기동 대사·StoreFinder 조립·전체 플로우에 참여한다.
 
 ### B. 새 API(capability) 추가 — 예: 매장 코드 검증 (실제 논의됐던 요구)
 
@@ -55,9 +61,9 @@ interface StoreCodeVerifiable {
 }
 
 // 2) 지원 파트너에만 구현 추가 (예: CjPartner에 `, StoreCodeVerifiable` + 메서드)
-// 3) 호출자 — 미지원 파트너는 타입 검사로 자연스럽게 건너뛴다
-val partner = registry[store.partnerKey]
-if (partner is StoreCodeVerifiable) partner.verifyStoreCode(storeCode)
+// 3) 호출자 — StoreFinder가 조립한 Store에서 꺼내고, 미지원은 타입 검사로 자연스럽게 건너뛴다
+val partner = store.directPos?.partner
+if (partner is StoreCodeVerifiable) partner.verifyStoreCode(store.directPos.partnerStoreCode)
 ```
 
 AS-IS였다면: `supports_store_code_verification` 컬럼 추가 → 마이그레이션 → 전 row 백필 →
@@ -101,10 +107,11 @@ fun interface OrderRegistrationValidator {
 
 @Service
 class OrderPlacementService(
-    private val registry: DirectPosPartnerRegistry,
+    private val posOrderWriter: PosOrderWriter,
+    private val posOrderSynchronizer: PosOrderSynchronizer,
     private val validators: List<OrderRegistrationValidator>,   // ← 규칙 추가 = 빈 추가
 ) {
-    fun place(partnerKey: PartnerKey, order: PosOrder) {
+    fun place(store: Store, order: PosOrder) {
         validators.forEach { it.validate(order) }               // 서비스는 한 줄도 안 바뀐다
         // …
     }
@@ -143,7 +150,7 @@ class OrderPlacementService(
 
 | 변경 | AS-IS | TO-BE |
 |---|---|---|
-| 새 파트너 | row INSERT (무배포) — 단, 페이로드가 같을 때만 | 구현 1파일 + yml (배포 동반 수용) — 페이로드가 달라도 |
+| 새 파트너 | row INSERT (무배포) — 단, 페이로드가 같을 때만 | 구현 1파일 + yml + partners row(정체성) — 페이로드가 달라도 (배포 동반 수용) |
 | 새 API/capability | 컬럼 추가 + 마이그레이션 + 백필 + 클라이언트 메서드 + 게이트 산개 | 인터페이스 1개 + 지원 파트너 구현 + 호출자 1곳 |
 | 페이로드 확장 | **불가능** (임계점) | 파트너 파일 안의 전용 DTO 조립 |
 | 검증 규칙 추가 (향후) | 서비스 if 누적 | `List<Validator>` 빈 추가, 서비스 무수정 |
