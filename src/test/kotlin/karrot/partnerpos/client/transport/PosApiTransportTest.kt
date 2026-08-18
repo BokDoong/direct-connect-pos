@@ -1,7 +1,7 @@
 package karrot.partnerpos.client.transport
 
 import karrot.partnerpos.BoundTransport
-import karrot.partnerpos.domain.partner.model.PosCommunicationException
+import karrot.partnerpos.domain.pos.model.PosCommunicationException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName

@@ -2,10 +2,10 @@ package karrot.partnerpos.domain.store.application
 
 import karrot.partnerpos.RecordingFoodTechClient
 import karrot.partnerpos.RecordingPartner
-import karrot.partnerpos.domain.partner.model.PartnerKey
-import karrot.partnerpos.domain.partner.model.PosCommunicationException
+import karrot.partnerpos.domain.pos.model.PartnerKey
+import karrot.partnerpos.domain.pos.model.PosCommunicationException
 import karrot.partnerpos.domain.store.model.StoreCode
-import karrot.partnerpos.domain.partner.model.StoreRegistrable
+import karrot.partnerpos.domain.pos.model.StoreRegistrable
 import karrot.partnerpos.integratedStore
 import karrot.partnerpos.karrotStore
 import org.assertj.core.api.Assertions.assertThat

@@ -1,29 +1,35 @@
 package karrot.partnerpos.domain.order.application
 
 import karrot.partnerpos.domain.order.model.OrderCode
-import karrot.partnerpos.domain.partner.model.PartnerKey
+import karrot.partnerpos.domain.pos.model.PartnerKey
+import karrot.partnerpos.infra.PartnerOrderEntity
+import karrot.partnerpos.infra.PartnerOrderRepository
+import karrot.partnerpos.infra.PartnerRepository
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Repository
-import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 파트너 주문 매핑 원장 (AS-IS `partner_orders`).
- * 같은 주문의 중복 등록은 저장소의 유니크 제약이 최종 방어한다 (AS-IS order_id uk → 409 해석).
- */
-interface PartnerOrderMappingRepository {
-    fun save(orderCode: OrderCode, partnerKey: PartnerKey)
-}
-
-/**
- * 파트너 주문 매핑 쓰기 구현체 (AS-IS 서버 컨벤션: 서비스 → Writer → Repository).
- * 서비스는 리포지토리를 직접 참조하지 않는다 — 쓰기 정책(트랜잭션 경계, uk 위반의 도메인 해석 등)이
- * 자랄 자리를 계층으로 확보해 두는 것.
+ * 파트너 주문 매핑 원장(`partner_orders`) 쓰기 (AS-IS 서버 컨벤션: 서비스 → Writer → Repository).
+ *
+ * 같은 주문의 중복 등록은 `order_code` 유니크 제약이 **최종 방어**하고,
+ * uk 위반을 도메인 언어(이미 등록된 주문)로 해석하는 것이 이 레이어의 책임이다 (AS-IS 409 해석).
+ * saveAndFlush로 제약 검증을 즉시 트리거해 실패를 호출 지점에서 잡는다.
  */
 @Component
 class PartnerOrderWriter(
-    private val partnerOrderMappingRepository: PartnerOrderMappingRepository,
+    private val partnerOrderRepository: PartnerOrderRepository,
+    private val partnerRepository: PartnerRepository,
 ) {
     fun write(orderCode: OrderCode, partnerKey: PartnerKey) {
-        partnerOrderMappingRepository.save(orderCode, partnerKey)
+        val partner = partnerRepository.findByPartnerKey(partnerKey.name)
+            ?: throw NoSuchElementException("partners row not found for key: ${partnerKey.name}")
+
+        try {
+            partnerOrderRepository.saveAndFlush(
+                PartnerOrderEntity(orderCode = orderCode.value, partnerId = partner.id),
+            )
+        } catch (e: DataIntegrityViolationException) {
+            throw IllegalStateException("order already registered to partner: ${orderCode.value}", e)
+        }
     }
 }

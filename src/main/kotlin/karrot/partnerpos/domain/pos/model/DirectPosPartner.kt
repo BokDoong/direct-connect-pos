@@ -1,4 +1,4 @@
-package karrot.partnerpos.domain.partner.model
+package karrot.partnerpos.domain.pos.model
 
 import karrot.partnerpos.domain.menu.model.MenuCode
 import karrot.partnerpos.domain.menu.model.MenuStock

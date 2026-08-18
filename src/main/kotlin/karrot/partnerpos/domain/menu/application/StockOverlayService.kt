@@ -2,7 +2,7 @@ package karrot.partnerpos.domain.menu.application
 
 import karrot.partnerpos.domain.menu.model.MenuCode
 import karrot.partnerpos.domain.menu.model.MenuStock
-import karrot.partnerpos.domain.partner.model.PosCommunicationException
+import karrot.partnerpos.domain.pos.model.PosCommunicationException
 import karrot.partnerpos.domain.store.model.Store
 import org.springframework.stereotype.Service
 

@@ -1,14 +1,14 @@
 package karrot.partnerpos
 
 import karrot.partnerpos.config.DirectPosProperties
-import karrot.partnerpos.domain.partner.model.DirectPosPartner
+import karrot.partnerpos.domain.pos.model.DirectPosPartner
 import karrot.partnerpos.domain.menu.model.MenuCode
 import karrot.partnerpos.domain.menu.model.MenuStock
 import karrot.partnerpos.domain.order.model.OrderCode
-import karrot.partnerpos.domain.partner.model.PartnerKey
-import karrot.partnerpos.domain.partner.model.PartnerPolicy
+import karrot.partnerpos.domain.pos.model.PartnerKey
+import karrot.partnerpos.domain.pos.model.PartnerPolicy
 import karrot.partnerpos.domain.order.model.PaymentMethod
-import karrot.partnerpos.domain.partner.model.PosCommunicationException
+import karrot.partnerpos.domain.pos.model.PosCommunicationException
 import karrot.partnerpos.domain.order.model.PosOrder
 import karrot.partnerpos.domain.order.model.PosOrderItem
 import karrot.partnerpos.domain.store.model.StoreCode

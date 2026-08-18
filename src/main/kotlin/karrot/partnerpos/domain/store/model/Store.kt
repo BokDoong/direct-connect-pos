@@ -1,7 +1,6 @@
 package karrot.partnerpos.domain.store.model
 
-import karrot.partnerpos.domain.partner.model.DirectPosPartner
-import karrot.partnerpos.domain.store.model.StoreCode
+import karrot.partnerpos.domain.pos.model.DirectPosPartner
 
 /** 연동 유형 — AS-IS `stores.partner_type` enum 유지 (재모델링은 범위 밖, 03 결정 D6). */
 enum class PartnerType { KARROT, FOODTECH, HAPPYORDER, INTEGRATED_PARTNER }

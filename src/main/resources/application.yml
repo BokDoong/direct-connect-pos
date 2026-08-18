@@ -1,6 +1,26 @@
 spring:
   application:
-    name: partner-pos
+    name: order-system
+
+  datasource:
+    url: jdbc:h2:mem:order-system;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop     # 데모용 — 엔티티에서 스키마 생성. 실환경은 마이그레이션 도구로 관리
+    defer-datasource-initialization: true # Hibernate 스키마 생성 후 data.sql 실행
+    open-in-view: false
+
+  sql:
+    init:
+      mode: always              # data.sql로 partners 시드 → 기동 대사(Reconciler) 통과 조건
+
+  h2:
+    console:
+      enabled: true             # http://localhost:8080/h2-console
 
 # 코드가 아닌 유일한 것 — 환경 데이터(base-url)와 시크릿(auth-key).
 # capability·정책값은 각 파트너 구현체 코드에 있다 (하이브리드 원칙).

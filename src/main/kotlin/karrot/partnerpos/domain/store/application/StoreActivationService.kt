@@ -1,6 +1,6 @@
 package karrot.partnerpos.domain.store.application
 
-import karrot.partnerpos.domain.partner.model.PosCommunicationException
+import karrot.partnerpos.domain.pos.model.PosCommunicationException
 import karrot.partnerpos.domain.store.model.Store
 import org.springframework.stereotype.Service
 

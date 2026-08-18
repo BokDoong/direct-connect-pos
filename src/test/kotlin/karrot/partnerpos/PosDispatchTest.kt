@@ -1,26 +1,15 @@
 package karrot.partnerpos
 
-import karrot.partnerpos.RecordingFoodTechClient
 import karrot.partnerpos.domain.menu.application.PosStockFinder
-import karrot.partnerpos.domain.order.application.PartnerOrderMappingRepository
-import karrot.partnerpos.domain.order.application.PartnerOrderWriter
 import karrot.partnerpos.domain.order.application.PosOrderSynchronizer
-import karrot.partnerpos.domain.order.application.PosOrderWriter
 import karrot.partnerpos.domain.store.application.PosStoreRegistrar
-import karrot.partnerpos.RecordingHappyOrderClient
-import karrot.partnerpos.RecordingPartner
 import karrot.partnerpos.domain.menu.model.MenuCode
 import karrot.partnerpos.domain.menu.model.MenuStock
 import karrot.partnerpos.domain.order.model.OrderCode
-import karrot.partnerpos.domain.partner.model.PartnerKey
-import karrot.partnerpos.domain.partner.model.StockQueryable
+import karrot.partnerpos.domain.pos.model.PartnerKey
+import karrot.partnerpos.domain.pos.model.StockQueryable
 import karrot.partnerpos.domain.store.model.StoreCode
-import karrot.partnerpos.domain.partner.model.StoreRegistrable
-import karrot.partnerpos.foodTechStore
-import karrot.partnerpos.happyOrderStore
-import karrot.partnerpos.integratedStore
-import karrot.partnerpos.karrotStore
-import karrot.partnerpos.sampleOrder
+import karrot.partnerpos.domain.pos.model.StoreRegistrable
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -87,30 +76,7 @@ class PosDispatchTest {
         }
     }
 
-    @Nested
-    inner class OrderWriter {
-        private val savedMappings = mutableMapOf<OrderCode, PartnerKey>()
-        private val writer = PosOrderWriter(
-            PartnerOrderWriter(object : PartnerOrderMappingRepository {
-                override fun save(orderCode: OrderCode, partnerKey: PartnerKey) {
-                    savedMappings[orderCode] = partnerKey
-                }
-            }),
-        )
-
-        @Test
-        @DisplayName("직연동 매장만 partner_orders 매핑에 저장된다 — 레거시 매핑은 각자 경로 소관")
-        fun onlyIntegratedWritesMapping() {
-            val orderCode = OrderCode("2608110000ABCD")
-
-            writer.write(integratedStore(RecordingPartner(key = PartnerKey("DIRECT"))), orderCode)
-            writer.write(foodTechStore(), orderCode)
-            writer.write(happyOrderStore(), orderCode)
-            writer.write(karrotStore(), orderCode)
-
-            assertThat(savedMappings).containsExactlyEntriesOf(mapOf(orderCode to PartnerKey("DIRECT")))
-        }
-    }
+    // 주문 매핑 쓰기(PosOrderWriter)의 분기는 실제 H2 제약과 함께 PosOrderWriterTest에서 검증한다.
 
     @Nested
     inner class StockFinder {

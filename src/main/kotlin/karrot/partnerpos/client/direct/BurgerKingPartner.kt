@@ -2,17 +2,14 @@ package karrot.partnerpos.client.direct
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import karrot.partnerpos.config.DirectPosProperties
-import karrot.partnerpos.domain.partner.model.DirectPosPartner
+import karrot.partnerpos.domain.pos.model.DirectPosPartner
 import karrot.partnerpos.domain.order.model.OrderCode
-import karrot.partnerpos.domain.partner.model.PartnerKey
-import karrot.partnerpos.domain.partner.model.PartnerPolicy
+import karrot.partnerpos.domain.pos.model.PartnerKey
+import karrot.partnerpos.domain.pos.model.PartnerPolicy
 import karrot.partnerpos.domain.order.model.PaymentMethod
 import karrot.partnerpos.domain.order.model.PosOrder
 import karrot.partnerpos.domain.store.model.StoreCode
-import karrot.partnerpos.domain.partner.model.StoreRegistrable
-import karrot.partnerpos.client.direct.CommonOrderPayload
-import karrot.partnerpos.client.direct.OrderCancelPayload
-import karrot.partnerpos.client.direct.StoreRegistrationPayload
+import karrot.partnerpos.domain.pos.model.StoreRegistrable
 import karrot.partnerpos.client.transport.PosApiTransport
 import org.springframework.stereotype.Component
 import kotlin.time.Duration.Companion.seconds

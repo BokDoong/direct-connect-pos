@@ -1,6 +1,6 @@
-package karrot.partnerpos.domain.partner.application
+package karrot.partnerpos.domain.pos.application
 
-import karrot.partnerpos.domain.partner.application.DirectPosPartnerRegistry
+import karrot.partnerpos.infra.PartnerRepository
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
@@ -16,13 +16,13 @@ import org.springframework.stereotype.Component
 @Component
 class PartnerRegistryReconciler(
     private val registry: DirectPosPartnerRegistry,
-    private val partnerRecords: PartnerRecordRepository,
+    private val partnerRepository: PartnerRepository,
 ) : ApplicationRunner {
 
     override fun run(args: ApplicationArguments?) = reconcile()
 
     fun reconcile() {
-        val dbKeys = partnerRecords.findAllKeys().toSet()
+        val dbKeys = partnerRepository.findAllKeys().toSet()
         val codeKeys = registry.keys.map { it.name }.toSet()
 
         val notImplemented = dbKeys - codeKeys   // row는 있는데 구현이 없다 → 주문이 터질 파트너

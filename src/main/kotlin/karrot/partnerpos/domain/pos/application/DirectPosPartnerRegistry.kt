@@ -1,7 +1,7 @@
-package karrot.partnerpos.domain.partner.application
+package karrot.partnerpos.domain.pos.application
 
-import karrot.partnerpos.domain.partner.model.DirectPosPartner
-import karrot.partnerpos.domain.partner.model.PartnerKey
+import karrot.partnerpos.domain.pos.model.DirectPosPartner
+import karrot.partnerpos.domain.pos.model.PartnerKey
 import org.springframework.stereotype.Component
 
 /**

@@ -6,8 +6,8 @@ import org.springframework.boot.runApplication
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-class PartnerPosApplication
+class OrderSystemApplication
 
 fun main(args: Array<String>) {
-    runApplication<PartnerPosApplication>(*args)
+    runApplication<OrderSystemApplication>(*args)
 }

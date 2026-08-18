@@ -2,7 +2,7 @@ package karrot.partnerpos.domain.menu.application
 
 import karrot.partnerpos.domain.menu.model.MenuCode
 import karrot.partnerpos.domain.menu.model.MenuStock
-import karrot.partnerpos.domain.partner.model.StockQueryable
+import karrot.partnerpos.domain.pos.model.StockQueryable
 import karrot.partnerpos.client.legacy.HappyOrderClient
 import karrot.partnerpos.domain.store.model.PartnerType
 import karrot.partnerpos.domain.store.model.Store

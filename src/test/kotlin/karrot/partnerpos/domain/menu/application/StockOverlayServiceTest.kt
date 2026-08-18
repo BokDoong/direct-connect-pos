@@ -4,9 +4,9 @@ import karrot.partnerpos.RecordingHappyOrderClient
 import karrot.partnerpos.RecordingPartner
 import karrot.partnerpos.domain.menu.model.MenuCode
 import karrot.partnerpos.domain.menu.model.MenuStock
-import karrot.partnerpos.domain.partner.model.PartnerKey
-import karrot.partnerpos.domain.partner.model.PosCommunicationException
-import karrot.partnerpos.domain.partner.model.StockQueryable
+import karrot.partnerpos.domain.pos.model.PartnerKey
+import karrot.partnerpos.domain.pos.model.PosCommunicationException
+import karrot.partnerpos.domain.pos.model.StockQueryable
 import karrot.partnerpos.domain.store.model.StoreCode
 import karrot.partnerpos.integratedStore
 import karrot.partnerpos.karrotStore

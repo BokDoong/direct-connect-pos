@@ -1,4 +1,4 @@
-package karrot.partnerpos.domain.partner.model
+package karrot.partnerpos.domain.pos.model
 
 /**
  * 직연동 파트너 식별자.

@@ -1,13 +1,11 @@
 package karrot.partnerpos.client.direct
 
 import karrot.partnerpos.config.DirectPosProperties
-import karrot.partnerpos.domain.partner.model.DirectPosPartner
+import karrot.partnerpos.domain.pos.model.DirectPosPartner
 import karrot.partnerpos.domain.order.model.OrderCode
-import karrot.partnerpos.domain.partner.model.PartnerKey
-import karrot.partnerpos.domain.partner.model.PartnerPolicy
+import karrot.partnerpos.domain.pos.model.PartnerKey
+import karrot.partnerpos.domain.pos.model.PartnerPolicy
 import karrot.partnerpos.domain.order.model.PosOrder
-import karrot.partnerpos.client.direct.CommonOrderPayload
-import karrot.partnerpos.client.direct.OrderCancelPayload
 import karrot.partnerpos.client.transport.PosApiTransport
 import org.springframework.stereotype.Component
 import kotlin.time.Duration.Companion.seconds

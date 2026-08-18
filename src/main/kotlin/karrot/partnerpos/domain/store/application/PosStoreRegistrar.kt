@@ -1,6 +1,6 @@
 package karrot.partnerpos.domain.store.application
 
-import karrot.partnerpos.domain.partner.model.StoreRegistrable
+import karrot.partnerpos.domain.pos.model.StoreRegistrable
 import karrot.partnerpos.client.legacy.FoodTechClient
 import karrot.partnerpos.domain.store.model.PartnerType
 import karrot.partnerpos.domain.store.model.Store
