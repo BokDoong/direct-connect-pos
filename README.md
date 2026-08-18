@@ -10,13 +10,15 @@
 
 | # | 문서 | 내용 |
 |---|---|---|
-| 1 | [docs/01-as-is-integrated-partner.md](docs/01-as-is-integrated-partner.md) | AS-IS 구조 — enum+DB row 분기, 스키마, API, "DB에 있던 설정" 인벤토리 |
-| 2 | [docs/02-as-is-outbound-flows.md](docs/02-as-is-outbound-flows.md) | AS-IS 아웃바운드 4종의 비즈니스 플로우와 실패 모드 — 추상화 경계(seam)의 발견 |
-| 3 | [docs/03-to-be-design-discussion.md](docs/03-to-be-design-discussion.md) | 문제 정의(P1~P7), 설계 결정(D1~D5)과 근거, 결정 로그 |
-| 4 | [docs/04-to-be-architecture.md](docs/04-to-be-architecture.md) | TO-BE 아키텍처 — 변하는 축 분석, 컴포넌트 구조도, 상호작용, 확장 시나리오 검증 |
-| 5 | [docs/05-extension-guide.md](docs/05-extension-guide.md) | 확장 가이드 — 시나리오별 추가 지점, 사용한 패턴, 무엇이 수월해졌는가 |
-| 6 | [docs/06-db-integration.md](docs/06-db-integration.md) | DB 연동 — 테이블별 운명, 코드↔DB 기동 대사, 트랜잭션 경계, 마이그레이션 경로 |
-| 7 | [docs/07-core-structure.md](docs/07-core-structure.md) | Core 구조 스냅샷 — 계층·영속 컨벤션·조립 경로·컴포넌트 맵·테스트 맵 |
+| 1 | [docs/cores/01-as-is-integrated-partner.md](docs/cores/01-as-is-integrated-partner.md) | AS-IS 구조 — enum+DB row 분기, 스키마, API, "DB에 있던 설정" 인벤토리 |
+| 2 | [docs/cores/02-as-is-outbound-flows.md](docs/cores/02-as-is-outbound-flows.md) | AS-IS 아웃바운드 4종의 비즈니스 플로우와 실패 모드 — 추상화 경계(seam)의 발견 |
+| 3 | [docs/cores/03-to-be-design-discussion.md](docs/cores/03-to-be-design-discussion.md) | 문제 정의(P1~P7), 설계 결정(D1~D5)과 근거, 결정 로그 |
+| 4 | [docs/cores/04-to-be-architecture.md](docs/cores/04-to-be-architecture.md) | TO-BE 아키텍처 — 변하는 축 분석, 컴포넌트 구조도, 상호작용, 확장 시나리오 검증 |
+| 5 | [docs/cores/05-extension-guide.md](docs/cores/05-extension-guide.md) | 확장 가이드 — 시나리오별 추가 지점, 사용한 패턴, 무엇이 수월해졌는가 |
+| 6 | [docs/cores/06-db-integration.md](docs/cores/06-db-integration.md) | DB 연동 — 테이블별 운명, 코드↔DB 기동 대사, 트랜잭션 경계, 마이그레이션 경로 |
+| 7 | [docs/cores/07-core-structure.md](docs/cores/07-core-structure.md) | Core 구조 스냅샷 — 계층·영속 컨벤션·조립 경로·컴포넌트 맵·테스트 맵 |
+
+**학습 시리즈**: [docs/kafka/](docs/kafka/README.md) — 카프카 0-to-100 이론 시리즈 10편 (기초 → 내부 원리 → 운영·설계 → 직접 구현 로드맵, 난이도 태그·면접 포인트 포함)
 
 ## 패키지 구조
 
